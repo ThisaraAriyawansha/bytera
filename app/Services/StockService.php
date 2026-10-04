@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\ProductBatch;
+use App\Models\ProductUnit;
 use App\Models\StockMovement;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -236,6 +238,99 @@ class StockService
         $this->adjustStock($product, $location, $qty);
 
         return $batch;
+    }
+
+    /**
+     * Open a batch at another location holding `$qty` units taken from a source batch, at the same cost and
+     * selling price, linked by `source_batch_id` (SPEC §8.13). Product counters are left to the caller.
+     */
+    public function splitBatchTo(ProductBatch $source, string $location, int $qty, string $note): ProductBatch
+    {
+        $this->ensureTransaction();
+        $this->ensureLocation($location);
+
+        return ProductBatch::query()->create([
+            'product_id' => $source->product_id,
+            'cost_price' => $source->cost_price,
+            'selling_price' => $source->selling_price,
+            'total_qty' => $qty,
+            'remaining_qty' => $qty,
+            'status' => 'active',
+            'location' => $location,
+            'source_batch_id' => $source->id,
+            'supplier_id' => $source->supplier_id,
+            'note' => $note,
+            'received_at' => now(),
+        ]);
+    }
+
+    /**
+     * Lock picked serial units FOR UPDATE and check every one is still in stock at the location.
+     *
+     * @param  list<int>  $unitIds
+     * @return Collection<int, ProductUnit>
+     *
+     * @throws ValidationException
+     */
+    public function lockAvailableUnits(Product $product, string $location, array $unitIds): Collection
+    {
+        $this->ensureTransaction();
+        $this->ensureLocation($location);
+
+        $units = ProductUnit::query()
+            ->where('product_id', $product->id)
+            ->whereKey($unitIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        if ($units->count() !== count(array_unique($unitIds))) {
+            throw ValidationException::withMessages([
+                'stock' => "Some serial numbers picked for \"{$product->name}\" no longer exist.",
+            ]);
+        }
+
+        $unavailable = $units->first(fn (ProductUnit $unit): bool => $unit->status !== 'in_stock' || $unit->location !== $location);
+
+        if ($unavailable !== null) {
+            throw ValidationException::withMessages([
+                'stock' => "\"{$unavailable->serial_number}\" is no longer in stock in ".self::LOCATIONS[$location].'.',
+            ]);
+        }
+
+        return $units;
+    }
+
+    /**
+     * Take serial units out of their batches: lock each batch and lower its `remaining_qty` by its units,
+     * marking emptied batches depleted.
+     *
+     * @param  Collection<int, ProductUnit>  $units
+     * @return list<array{batch: ProductBatch, qty: int}> the units taken per batch, oldest batch first
+     */
+    public function takeUnitsFromBatches(Collection $units): array
+    {
+        $this->ensureTransaction();
+
+        $counts = $units->countBy('batch_id')->all();
+        $taken = [];
+
+        $batches = ProductBatch::query()
+            ->whereKey(array_keys($counts))
+            ->orderBy('received_at')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($batches as $batch) {
+            $remaining = max(0, $batch->remaining_qty - $counts[$batch->id]);
+
+            $batch->update(['remaining_qty' => $remaining, 'status' => $remaining > 0 ? 'active' : 'depleted']);
+
+            $taken[] = ['batch' => $batch, 'qty' => $counts[$batch->id]];
+        }
+
+        return $taken;
     }
 
     /**

@@ -22,6 +22,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class StockOut extends Model
 {
     /**
+     * Why stock was issued, with its label (SPEC §8.14).
+     *
+     * @var array<string, string>
+     */
+    public const REASONS = [
+        'job' => 'Job / Repair',
+        'sale' => 'Sale',
+        'other' => 'Other',
+    ];
+
+    /**
      * Get the stock out's line items.
      *
      * @return HasMany<StockOutItem, $this>

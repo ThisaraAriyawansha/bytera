@@ -6,11 +6,20 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataToolController;
+use App\Http\Controllers\GrnController;
+use App\Http\Controllers\JobController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\StockOutController;
+use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -31,7 +40,18 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/auth/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::view('/dashboard', 'dashboard')->middleware('can:dashboard.view')->name('dashboard');
-    Route::view('/sales', 'sales.index')->middleware('can:sales.view')->name('sales.index');
+    Route::middleware('can:sales.view')->group(function () {
+        Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+        Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+        Route::post('/sales/customers', [SaleController::class, 'storeCustomer'])->name('sales.customers.store');
+
+        Route::post('/shifts', [ShiftController::class, 'store'])->name('shifts.store');
+        Route::post('/shifts/{shift}/close', [ShiftController::class, 'close'])->name('shifts.close');
+
+        Route::get('/api/products/{product}/batches', [ProductStockController::class, 'availableBatches'])->name('api.products.batches');
+    });
+
+    Route::post('/sales/{sale}/email', [SaleController::class, 'email'])->middleware('throttle:10,1')->name('sales.email');
     Route::view('/jobs', 'jobs.index')->middleware('can:jobs.view')->name('jobs.index');
 
     Route::middleware('can:services.view')->group(function () {
@@ -60,10 +80,35 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/{product}/units/{unit}', [ProductStockController::class, 'updateUnit'])->name('units.update');
         Route::delete('/{product}/units/{unit}', [ProductStockController::class, 'destroyUnit'])->name('units.destroy');
     });
-    Route::view('/grn', 'grn.index')->middleware('can:grn.view')->name('grn.index');
-    Route::view('/stock-transfer', 'stock-transfer.index')->middleware('can:stockTransfer.view')->name('stock-transfer.index');
-    Route::view('/stock-out', 'stock-out.index')->middleware('can:stockOut.view')->name('stock-out.index');
-    Route::view('/stock-movements', 'stock-movements.index')->middleware('can:stockMovements.view')->name('stock-movements.index');
+
+    Route::middleware('can:grn.view')->prefix('grn')->name('grn.')->group(function () {
+        Route::get('/', [GrnController::class, 'index'])->name('index');
+        Route::get('/new', [GrnController::class, 'create'])->middleware('can:grn.create')->name('create');
+        Route::post('/', [GrnController::class, 'store'])->name('store');
+        Route::get('/{grn}', [GrnController::class, 'show'])->name('show');
+        Route::put('/{grn}', [GrnController::class, 'update'])->name('update');
+    });
+
+    Route::middleware('can:stockTransfer.view')->prefix('stock-transfer')->name('stock-transfer.')->group(function () {
+        Route::get('/', [StockTransferController::class, 'index'])->name('index');
+        Route::get('/new', [StockTransferController::class, 'create'])->middleware('can:stockTransfer.create')->name('create');
+        Route::post('/', [StockTransferController::class, 'store'])->name('store');
+        Route::get('/{stockTransfer}', [StockTransferController::class, 'show'])->name('show');
+        Route::put('/{stockTransfer}', [StockTransferController::class, 'update'])->name('update');
+    });
+
+    Route::middleware('can:stockOut.view')->prefix('stock-out')->name('stock-out.')->group(function () {
+        Route::get('/', [StockOutController::class, 'index'])->name('index');
+        Route::get('/new', [StockOutController::class, 'create'])->middleware('can:stockOut.create')->name('create');
+        Route::post('/', [StockOutController::class, 'store'])->name('store');
+        Route::get('/{stockOut}', [StockOutController::class, 'show'])->name('show');
+        Route::put('/{stockOut}', [StockOutController::class, 'update'])->name('update');
+    });
+
+    Route::middleware('can:stockMovements.view')->prefix('stock-movements')->name('stock-movements.')->group(function () {
+        Route::get('/', [StockMovementController::class, 'index'])->name('index');
+        Route::get('/export', [StockMovementController::class, 'export'])->name('export');
+    });
 
     Route::middleware('can:brands.view')->group(function () {
         Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
@@ -87,7 +132,20 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
         Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     });
-    Route::view('/suppliers', 'suppliers.index')->middleware('can:suppliers.view')->name('suppliers.index');
+
+    Route::middleware('can:suppliers.view')->prefix('suppliers')->name('suppliers.')->scopeBindings()->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('index');
+        Route::post('/', [SupplierController::class, 'store'])->name('store');
+
+        Route::get('/payments', [SupplierPaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/export', [SupplierPaymentController::class, 'export'])->name('payments.export');
+
+        Route::get('/{supplier}', [SupplierController::class, 'show'])->name('show');
+        Route::put('/{supplier}', [SupplierController::class, 'update'])->name('update');
+        Route::post('/{supplier}/statement', [SupplierController::class, 'sendStatement'])->name('statement');
+        Route::post('/{supplier}/payments', [SupplierPaymentController::class, 'store'])->name('payments.store');
+        Route::put('/{supplier}/payments/{payment}', [SupplierPaymentController::class, 'update'])->name('payments.update');
+    });
 
     Route::view('/finance', 'finance.index')->middleware('can:finance.view')->name('finance.index');
     Route::view('/salary', 'salary.index')->middleware('can:salary.view')->name('salary.index');
@@ -110,6 +168,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
 
     Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
+    Route::get('/api/jobs/search', [JobController::class, 'search'])->name('api.jobs.search');
+    Route::get('/api/products/{product}/units', [ProductStockController::class, 'availableUnits'])->name('api.products.units');
 
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');

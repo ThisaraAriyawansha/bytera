@@ -50,6 +50,72 @@ class Job extends Model
     use HasFactory;
 
     /**
+     * Job statuses with their label and badge variant (SPEC §8.7), in workflow order.
+     *
+     * @var array<string, array{label: string, variant: string}>
+     */
+    public const STATUSES = [
+        'pending' => ['label' => 'Job Pending', 'variant' => 'warning'],
+        'ongoing' => ['label' => 'Ongoing Job', 'variant' => 'default'],
+        'done' => ['label' => 'Job Done', 'variant' => 'success'],
+        'delivered' => ['label' => 'Delivered', 'variant' => 'info'],
+        'unrepairable' => ['label' => "Can't Repair", 'variant' => 'danger'],
+    ];
+
+    /**
+     * Device type buttons on the job note; "Other" asks for the type.
+     *
+     * @var list<string>
+     */
+    public const DEVICE_TYPES = ['Desktop', 'Laptop', 'Printer', 'Monitor', 'CCTV', 'Other'];
+
+    /**
+     * Quick-add part chips for each device type.
+     *
+     * @var array<string, list<string>>
+     */
+    public const PART_PRESETS = [
+        'Laptop' => ['RAM', 'SSD', 'HDD', 'Battery', 'WiFi Card', 'Keyboard', 'Display'],
+        'Desktop' => ['RAM', 'SSD', 'HDD', 'Processor', 'Motherboard', 'GPU', 'Power Supply', 'WiFi Card'],
+        'Printer' => ['Cartridge', 'Toner', 'Drum Unit', 'Power Cable'],
+        'Monitor' => ['Power Adapter', 'Stand', 'Cable'],
+        'CCTV' => ['HDD', 'DVR/NVR', 'Camera', 'Power Adapter'],
+    ];
+
+    /**
+     * Accessory checkboxes.
+     *
+     * @var list<string>
+     */
+    public const ACCESSORIES = ['Charger', 'Power Cable', 'Battery', 'Adapter', 'Bag', 'Mouse', 'Keyboard', 'HDD/SSD'];
+
+    /**
+     * Physical condition checkboxes.
+     *
+     * @var list<string>
+     */
+    public const CONDITIONS = ['Good', 'Scratches', 'Cracked', 'Broken Hinges', 'Liquid Damage', 'Missing Parts'];
+
+    /**
+     * Get the status label, e.g. "Job Done".
+     */
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status]['label'] ?? $this->status;
+    }
+
+    /**
+     * Get the device as one line, e.g. "Laptop · Dell Inspiron 15".
+     */
+    public function deviceLabel(): string
+    {
+        $type = $this->device_type === 'Other' && filled($this->device_type_other) ? $this->device_type_other : $this->device_type;
+        $name = trim($this->brand.' '.$this->model);
+
+        return $name === '' ? (string) $type : "{$type} · {$name}";
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

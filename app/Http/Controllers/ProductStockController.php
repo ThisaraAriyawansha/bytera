@@ -24,6 +24,64 @@ class ProductStockController extends Controller
     public function __construct(private StockService $stock) {}
 
     /**
+     * In-stock serial units of a product at one location, oldest first, for the serial pickers of
+     * Stock Transfer, Stock Out and the POS.
+     */
+    public function availableUnits(Request $request, Product $product): JsonResponse
+    {
+        abort_unless(Gate::any(['stockTransfer.create', 'stockOut.create', 'sales.view']), 403);
+
+        $location = $request->query('location');
+        abort_unless(is_string($location) && array_key_exists($location, StockService::LOCATIONS), 422);
+
+        $units = $product->units()
+            ->where('status', 'in_stock')
+            ->where('location', $location)
+            ->orderBy('id')
+            ->get(['id', 'batch_id', 'serial_number', 'cost_price', 'selling_price']);
+
+        return response()->json([
+            'units' => $units->map(fn (ProductUnit $unit): array => [
+                'id' => $unit->id,
+                'batch_id' => $unit->batch_id,
+                'serial_number' => $unit->serial_number,
+                'cost_price' => (float) $unit->cost_price,
+                'selling_price' => $unit->selling_price === null ? null : (float) $unit->selling_price,
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * Active batches of a product at one location in FIFO order, for the POS batch picker. Each has its cost and
+     * the price it sells at (the batch price, or the product price when the batch has none).
+     */
+    public function availableBatches(Request $request, Product $product): JsonResponse
+    {
+        abort_unless(Gate::allows('sales.view'), 403);
+
+        $location = $request->query('location');
+        abort_unless(is_string($location) && array_key_exists($location, StockService::LOCATIONS), 422);
+
+        $batches = $product->batches()
+            ->where('location', $location)
+            ->where('status', 'active')
+            ->where('remaining_qty', '>', 0)
+            ->orderBy('received_at')
+            ->orderBy('id')
+            ->get(['id', 'cost_price', 'selling_price', 'remaining_qty', 'received_at']);
+
+        return response()->json([
+            'batches' => $batches->map(fn (ProductBatch $batch): array => [
+                'id' => $batch->id,
+                'cost_price' => (float) $batch->cost_price,
+                'selling_price' => (float) ($batch->selling_price ?? $product->selling_price),
+                'remaining_qty' => $batch->remaining_qty,
+                'received_at' => $batch->received_at->toDateString(),
+            ])->values(),
+        ]);
+    }
+
+    /**
      * List a product's stock batches, newest first, for the Stock Batches modal.
      */
     public function batches(Product $product): JsonResponse

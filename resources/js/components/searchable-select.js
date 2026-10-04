@@ -108,6 +108,23 @@ export default function searchableSelect({ options = [], value = null, searchUrl
             this.$nextTick(() => this.$refs.hidden.dispatchEvent(new Event('change', { bubbles: true })));
         },
 
+        /**
+         * Show an option the static list doesn't hold as selected — e.g. the current record of a server-searched
+         * picker. Call from `x-init` with the bound value's option.
+         */
+        seed(option) {
+            if (! option) {
+                return;
+            }
+
+            if (! this.options.some((existing) => String(existing.value) === String(option.value))) {
+                this.options = [option, ...this.options];
+            }
+
+            this.selected = option;
+            this.query = option.label;
+        },
+
         isSelected(option) {
             return String(option.value ?? '') === String(this.value ?? '');
         },

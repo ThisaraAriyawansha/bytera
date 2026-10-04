@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StockService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,20 @@ class StockMovement extends Model
     const UPDATED_AT = null;
 
     /**
+     * The document type behind each movement, with its label for the Stock Movements filter and badges (SPEC §8.15).
+     *
+     * @var array<string, string>
+     */
+    public const REFERENCE_TYPES = [
+        'grn' => 'GRN',
+        'transfer' => 'Transfer',
+        'stock_out' => 'Stock Out',
+        'sale' => 'Sale',
+        'sale_cancel' => 'Sale Cancel',
+        'batch_edit' => 'Batch Edit',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -44,6 +59,18 @@ class StockMovement extends Model
         return [
             'qty' => 'integer',
         ];
+    }
+
+    /**
+     * Where the stock moved: one location, or "Stores → Showroom" for a transfer.
+     */
+    public function locationLabel(): string
+    {
+        if ($this->from_location !== null && $this->to_location !== null) {
+            return StockService::LOCATIONS[$this->from_location].' → '.StockService::LOCATIONS[$this->to_location];
+        }
+
+        return StockService::LOCATIONS[$this->location] ?? '—';
     }
 
     /**

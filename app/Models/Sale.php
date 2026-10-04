@@ -45,6 +45,42 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Sale extends Model
 {
     /**
+     * Payment methods offered at the POS and their labels.
+     *
+     * @var array<string, string>
+     */
+    public const PAYMENT_METHODS = [
+        'cash' => 'Cash',
+        'card' => 'Card',
+        'transfer' => 'Transfer',
+        'kokopay' => 'KokoPay',
+    ];
+
+    /**
+     * Get the payment legs: the split payments, or the whole total on the one method.
+     *
+     * @return list<array{method: string, label: string, amount: float}>
+     */
+    public function paymentLegs(): array
+    {
+        $legs = $this->payments ?: [['method' => $this->payment_method, 'amount' => $this->total_amount]];
+
+        return array_map(fn (array $leg): array => [
+            'method' => $leg['method'],
+            'label' => self::PAYMENT_METHODS[$leg['method']] ?? $leg['method'],
+            'amount' => (float) $leg['amount'],
+        ], $legs);
+    }
+
+    /**
+     * Get the payment label for lists: "Cash", or "Cash + Card" for a split.
+     */
+    public function paymentLabel(): string
+    {
+        return implode(' + ', array_column($this->paymentLegs(), 'label'));
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
