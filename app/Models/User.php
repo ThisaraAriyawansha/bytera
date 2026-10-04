@@ -45,6 +45,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the avatar initials: first + last initial of the name, falling back to the email.
+     */
+    public function initials(): string
+    {
+        $words = preg_split('/\s+/', trim((string) ($this->name ?: $this->email)), -1, PREG_SPLIT_NO_EMPTY) ?: ['?'];
+
+        $initials = mb_substr($words[0], 0, 1);
+
+        if (count($words) > 1) {
+            $initials .= mb_substr($words[array_key_last($words)], 0, 1);
+        }
+
+        return mb_strtoupper($initials);
+    }
+
+    /**
      * Get the salary payments issued to the user.
      *
      * @return HasMany<SalaryPayment, $this>
