@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\SubCategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'main_category_id', 'description'])]
 class SubCategory extends Model
 {
+    /** @use HasFactory<SubCategoryFactory> */
+    use HasFactory;
+
     /**
      * Get the parent main category.
      *

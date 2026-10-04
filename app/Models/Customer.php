@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'phone', 'phone2', 'email', 'address', 'loyalty_points'])]
 class Customer extends Model
 {
+    /** @use HasFactory<CustomerFactory> */
+    use HasFactory;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -19,6 +26,22 @@ class Customer extends Model
         return [
             'loyalty_points' => 'integer',
         ];
+    }
+
+    /**
+     * Scope the query to customers whose name, phone or second phone starts with the term.
+     *
+     * @param  Builder<Customer>  $query
+     */
+    #[Scope]
+    protected function startingWith(Builder $query, string $term): void
+    {
+        $prefix = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+
+        $query->where(fn (Builder $query) => $query
+            ->where('name', 'like', $prefix)
+            ->orWhere('phone', 'like', $prefix)
+            ->orWhere('phone2', 'like', $prefix));
     }
 
     /**

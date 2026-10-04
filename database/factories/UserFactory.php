@@ -45,6 +45,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user is an Admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'Admin',
+        ]);
+    }
+
+    /**
      * Indicate that the user's account is disabled.
      */
     public function inactive(): static
