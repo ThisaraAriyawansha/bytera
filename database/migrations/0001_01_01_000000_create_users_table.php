@@ -15,8 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('phone')->nullable();
             $table->string('password');
+            $table->string('role');
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->json('permissions')->nullable();
+            $table->enum('salary_type', ['monthly', 'commission', 'hybrid'])->nullable();
+            $table->decimal('salary_monthly_amount', 12, 2)->nullable();
+            $table->decimal('salary_commission_percent', 5, 2)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

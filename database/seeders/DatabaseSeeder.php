@@ -2,9 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Counter;
+use App\Models\ShopSetting;
 use App\Models\User;
+use App\Services\Numbering;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +19,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $superAdminEmail = config('services.super_admin.email');
+        $superAdminPassword = config('services.super_admin.password');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (blank($superAdminEmail) || blank($superAdminPassword)) {
+            throw new RuntimeException('Set SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD in .env before seeding.');
+        }
+
+        User::query()->updateOrCreate(
+            ['email' => $superAdminEmail],
+            [
+                'name' => 'Super Admin',
+                'password' => $superAdminPassword,
+                'role' => 'Super Admin',
+                'status' => 'active',
+            ],
+        );
+
+        if (ShopSetting::query()->doesntExist()) {
+            ShopSetting::query()->create([
+                'name' => 'M-Fixpro',
+                'phone' => '',
+                'notify_emails' => [],
+            ]);
+        }
+
+        foreach (array_keys(Numbering::PREFIXES) as $counterName) {
+            Counter::query()->firstOrCreate(['name' => $counterName], ['value' => 0]);
+        }
     }
 }

@@ -1,9 +1,43 @@
-@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap');
+@tailwind base; @tailwind components; @tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+html { font-family: 'Poppins', sans-serif; background:#fff; color:#0a0a0a; }
+body { font-family:'Poppins',sans-serif; font-size:14px; line-height:1.6; color:#0a0a0a; background:#fafafa; -webkit-font-smoothing:antialiased; }
+.font-prata { font-weight: 700; }
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* thin scrollbars */
+::-webkit-scrollbar{width:4px;height:4px} ::-webkit-scrollbar-track{background:#f4f4f5}
+::-webkit-scrollbar-thumb{background:#d4d4d8;border-radius:2px} ::-webkit-scrollbar-thumb:hover{background:#a1a1aa}
+.sidebar-nav-scroll{scrollbar-color:#e4e4e7 transparent;scrollbar-width:thin}
+
+/* hide number spinners */
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* iOS: avoid zoom on focus */
+@media (hover:none) and (pointer:coarse){ input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important} }
+
+@layer components {
+  .nexora-card  { background:#fff; border:1px solid #e4e4e7; border-radius:8px; }
+  .nexora-input { width:100%; border:1px solid #e4e4e7; border-radius:4px; padding:8px 12px; font-family:'Poppins'; font-size:14px; color:#0a0a0a; background:#fff; outline:none; transition:border-color .15s; }
+  .nexora-input:focus { border-color:#e30613; } .nexora-input::placeholder { color:#a1a1aa; }
+  .nexora-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; font-family:'Poppins'; font-size:13px; font-weight:500; border-radius:4px; cursor:pointer; transition:all .15s; border:none; outline:none; }
+  .nexora-btn-primary { background:#e30613; color:#fff; } .nexora-btn-primary:hover { background:#b8050f; }
+  .nexora-btn-outline { background:transparent; color:#0a0a0a; border:1px solid #e4e4e7; } .nexora-btn-outline:hover { border-color:#e30613; color:#e30613; }
+  .nexora-btn-ghost { background:transparent; color:#52525b; } .nexora-btn-ghost:hover { background:#f4f4f5; color:#e30613; }
+  .nexora-btn-danger { background:#0a0a0a; color:#fff; } .nexora-btn-danger:hover { background:#e30613; }
+  .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:2px; font-size:11px; font-weight:500; letter-spacing:.03em; }
+  .badge-default{background:#f4f4f5;color:#52525b} .badge-success{background:#f0fdf4;color:#15803d}
+  .badge-warning{background:#fefce8;color:#a16207} .badge-danger{background:#fef2f2;color:#dc2626}
+  .badge-info{background:#eff6ff;color:#1d4ed8}
+}
+
+/* A4 print: only the print container is visible */
+@media print {
+  @page { size:A4; margin:15mm; }
+  body * { visibility:hidden; }
+  #bill-print, #bill-print *, #quotation-print, #quotation-print *, #job-print, #job-print * { visibility:visible; }
+  #bill-print, #quotation-print, #job-print { position:absolute; inset:0; width:180mm!important; min-height:267mm!important; padding:0!important; font-size:11pt; color:#000; background:#fff; }
+  .no-print { display:none!important; }
+  .bill-signature-block, .job-signature-block { margin-top:6mm!important; }
 }
