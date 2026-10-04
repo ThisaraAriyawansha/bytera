@@ -22,6 +22,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SupplierPayment extends Model
 {
     /**
+     * Label for each payment method.
+     *
+     * @var array<string, string>
+     */
+    public const METHODS = [
+        'cash' => 'Cash',
+        'bank_transfer' => 'Bank Transfer',
+        'cheque' => 'Cheque',
+        'other' => 'Other',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

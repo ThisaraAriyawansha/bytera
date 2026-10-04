@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +52,58 @@ class Product extends Model
             'active' => 'boolean',
             'low_stock_alerted' => 'boolean',
         ];
+    }
+
+    /**
+     * Scope the query to products whose name, SKU or barcode contains the term.
+     *
+     * @param  Builder<Product>  $query
+     */
+    #[Scope]
+    protected function matching(Builder $query, string $term): void
+    {
+        $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+
+        $query->where(fn (Builder $query) => $query
+            ->where('name', 'like', $pattern)
+            ->orWhere('sku', 'like', $pattern)
+            ->orWhere('barcode', 'like', $pattern));
+    }
+
+    /**
+     * Determine whether the product's total stock is at or below its low stock alert level.
+     */
+    public function isLowOnStock(): bool
+    {
+        return $this->total_stock <= $this->low_stock_alert;
+    }
+
+    /**
+     * Get which of the given serial numbers this product already has a unit for, optionally ignoring one unit.
+     *
+     * @param  list<string>  $serials
+     * @return list<string>
+     */
+    public function existingSerials(array $serials, ?int $ignoreUnitId = null): array
+    {
+        if ($serials === []) {
+            return [];
+        }
+
+        return $this->units()
+            ->whereIn('serial_number', $serials)
+            ->when($ignoreUnitId !== null, fn (Builder $query) => $query->whereKeyNot($ignoreUnitId))
+            ->pluck('serial_number')
+            ->all();
+    }
+
+    /**
+     * Count the bills, warranties and stock documents that reference the product and would block deleting it.
+     */
+    public function documentReferenceCount(): int
+    {
+        return collect([SaleItem::class, Warranty::class, GrnItem::class, StockOutItem::class, StockTransferItem::class])
+            ->sum(fn (string $model): int => $model::query()->where('product_id', $this->id)->count());
     }
 
     /**

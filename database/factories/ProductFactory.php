@@ -38,4 +38,14 @@ class ProductFactory extends Factory
             'active' => true,
         ];
     }
+
+    /**
+     * Indicate that the product tracks a serial number per unit.
+     */
+    public function serialTracked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'track_serial' => true,
+        ]);
+    }
 }

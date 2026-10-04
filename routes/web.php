@@ -6,6 +6,8 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataToolController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingsController;
@@ -43,7 +45,21 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::view('/quotations', 'quotations.index')->middleware('can:quotations.view')->name('quotations.index');
     Route::view('/warranty', 'warranty.index')->middleware('can:warranty.view')->name('warranty.index');
 
-    Route::view('/products', 'products.index')->middleware('can:products.view')->name('products.index');
+    Route::middleware('can:products.view')->prefix('products')->name('products.')->scopeBindings()->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+
+        Route::get('/{product}/batches', [ProductStockController::class, 'batches'])->name('batches.index');
+        Route::post('/{product}/batches', [ProductStockController::class, 'storeBatch'])->name('batches.store');
+        Route::put('/{product}/batches/{batch}', [ProductStockController::class, 'updateBatch'])->name('batches.update');
+
+        Route::get('/{product}/batches/{batch}/units', [ProductStockController::class, 'units'])->name('units.index');
+        Route::post('/{product}/batches/{batch}/units', [ProductStockController::class, 'storeUnits'])->name('units.store');
+        Route::put('/{product}/units/{unit}', [ProductStockController::class, 'updateUnit'])->name('units.update');
+        Route::delete('/{product}/units/{unit}', [ProductStockController::class, 'destroyUnit'])->name('units.destroy');
+    });
     Route::view('/grn', 'grn.index')->middleware('can:grn.view')->name('grn.index');
     Route::view('/stock-transfer', 'stock-transfer.index')->middleware('can:stockTransfer.view')->name('stock-transfer.index');
     Route::view('/stock-out', 'stock-out.index')->middleware('can:stockOut.view')->name('stock-out.index');
