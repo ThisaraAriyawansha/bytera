@@ -45,7 +45,7 @@
                     <tbody class="divide-y divide-zinc-100">
                         @forelse ($customers as $customer)
                             <tr class="hover:bg-zinc-50">
-                                <td class="whitespace-nowrap px-5 py-3 font-medium text-ink">{{ $customer->name }}</td>
+                                <td class="min-w-[10rem] px-5 py-3 font-medium text-ink">{{ $customer->name }}</td>
                                 <td class="whitespace-nowrap px-5 py-3 text-zinc-600">
                                     <div>{{ $customer->phone }}</div>
                                     @if ($customer->phone2)

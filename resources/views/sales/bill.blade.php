@@ -147,6 +147,8 @@
     </div>
 
     {{-- Bottom block, pinned to the page bottom --}}
+    {{-- Pushes the bottom block to the foot of the page; print CSS replaces its margin-top:auto with 6mm. --}}
+    <div style="flex:1 1 auto;" aria-hidden="true"></div>
     <div class="bill-signature-block" style="margin-top:auto; padding-top:8mm;">
         <div style="background:#f4f4f5; border-radius:4px; padding:3mm 4mm; font-size:7.5pt; line-height:1.5; color:#3f3f46;">
             <div style="font-weight:700; letter-spacing:.05em; color:#0a0a0a; margin-bottom:1mm;">WARRANTY TERMS &amp; CONDITIONS</div>

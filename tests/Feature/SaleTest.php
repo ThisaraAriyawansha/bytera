@@ -398,6 +398,19 @@ class SaleTest extends TestCase
             ->assertSee($this->shift->shift_no);
     }
 
+    public function test_pos_modal_titles_bind_their_alpine_expressions_as_quoted_attributes(): void
+    {
+        $this->actingAs($this->cashier)
+            ->get(route('sales.index'))
+            ->assertOk()
+            ->assertSee('Close Shift — <span x-text="shift?.shift_no"></span>', false)
+            ->assertSee('<span x-text="batchProduct?.name ?? \'Choose a batch\'"></span>', false)
+            ->assertSee('<span x-text="serialProduct?.name ?? \'Pick serial numbers\'"></span>', false)
+            ->assertSee('<span x-text="serviceDraft?.service.name"></span>', false)
+            ->assertSee('<span x-text="methodLabels[chargeMethod] + \' Charge\'"></span>', false)
+            ->assertDontSee('x-text=&quot;', false);
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      */

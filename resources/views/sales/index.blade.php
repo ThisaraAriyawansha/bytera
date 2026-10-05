@@ -78,9 +78,9 @@
                                     x-on:click="pickProduct(product)" x-bind:disabled="batchLoading && batchProduct?.id === product.id">
                                 <span class="line-clamp-2 text-sm font-medium text-ink" x-text="product.name"></span>
                                 <span class="text-xs text-zinc-400" x-text="product.sku"></span>
-                                <span class="mt-auto flex items-end justify-between gap-2 pt-3">
-                                    <span class="font-prata text-sm text-ink" x-text="money(product.price)"></span>
-                                    <span class="badge" x-bind:class="product.showroom <= 5 ? 'badge-warning' : 'badge-default'" x-text="`${product.showroom} in stock`"></span>
+                                <span class="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1 pt-3">
+                                    <span class="whitespace-nowrap font-prata text-sm text-ink" x-text="money(product.price)"></span>
+                                    <span class="badge whitespace-nowrap" x-bind:class="product.showroom <= 5 ? 'badge-warning' : 'badge-default'" x-text="`${product.showroom} in stock`"></span>
                                 </span>
                             </button>
                         </template>

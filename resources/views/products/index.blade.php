@@ -61,22 +61,22 @@
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                                <th class="px-5 py-3">Product</th>
-                                <th class="px-5 py-3">Brand</th>
-                                <th class="px-5 py-3">Category</th>
-                                <th class="whitespace-nowrap px-5 py-3 text-right">Selling Price</th>
-                                <th class="px-5 py-3">Warranty</th>
-                                <th class="px-5 py-3">Stock</th>
-                                <th class="px-5 py-3 text-center">Batches</th>
-                                <th class="px-5 py-3">Status</th>
-                                <th class="px-5 py-3 text-right">Actions</th>
+                                <th class="px-4 py-3">Product</th>
+                                <th class="px-4 py-3">Brand</th>
+                                <th class="px-4 py-3">Category</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right">Selling Price</th>
+                                <th class="px-4 py-3">Warranty</th>
+                                <th class="px-4 py-3">Stock</th>
+                                <th class="px-4 py-3 text-center">Batches</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100">
                             @forelse ($products as $product)
                                 @php($isLow = $product->isLowOnStock())
                                 <tr class="hover:bg-zinc-50">
-                                    <td class="min-w-[12rem] px-5 py-3">
+                                    <td class="min-w-[12rem] px-4 py-3">
                                         <div class="flex items-center gap-1.5 font-medium text-ink">
                                             {{ $product->name }}
                                             @if ($product->track_serial)
@@ -87,17 +87,17 @@
                                             {{ $product->sku }}@if ($product->barcode) · {{ $product->barcode }}@endif
                                         </div>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-zinc-600">{{ $product->brand?->name ?? '—' }}</td>
-                                    <td class="min-w-[10rem] px-5 py-3 text-zinc-600">
+                                    <td class="whitespace-nowrap px-4 py-3 text-zinc-600">{{ $product->brand?->name ?? '—' }}</td>
+                                    <td class="min-w-[10rem] px-4 py-3 text-zinc-600">
                                         {{ $product->mainCategory?->name ?? '—' }}
                                         <span class="text-zinc-400">›</span>
                                         {{ $product->subCategory?->name ?? '—' }}
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-right tabular-nums">{{ Money::format($product->selling_price) }}</td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-zinc-600">
+                                    <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ Money::format($product->selling_price) }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-zinc-600">
                                         {{ $product->warranty_months > 0 ? $product->warranty_months.' '.str('month')->plural($product->warranty_months) : '—' }}
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-3">
+                                    <td class="whitespace-nowrap px-4 py-3">
                                         <div class="flex items-center gap-1.5">
                                             <span @class(['font-semibold tabular-nums', 'text-brand' => $isLow, 'text-ink' => ! $isLow])>{{ number_format($product->total_stock) }}</span>
                                             @if ($isLow)
@@ -106,16 +106,16 @@
                                         </div>
                                         <div class="text-xs text-zinc-500">Stores {{ number_format($product->stores_stock) }} · Showroom {{ number_format($product->showroom_stock) }}</div>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-center tabular-nums">
+                                    <td class="whitespace-nowrap px-4 py-3 text-center tabular-nums">
                                         <span class="text-ink">{{ $product->active_batches_count }}</span>
                                         @if ($product->batches_count > $product->active_batches_count)
                                             <span class="text-xs text-zinc-400">/ {{ $product->batches_count }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-5 py-3">
+                                    <td class="px-4 py-3">
                                         <x-badge :variant="$product->active ? 'success' : 'default'">{{ $product->active ? 'Active' : 'Inactive' }}</x-badge>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-right">
+                                    <td class="whitespace-nowrap px-4 py-3 text-right">
                                         <button type="button" class="{{ $iconButtonClasses }}"
                                                 x-on:click="openBatches(@js(route('products.batches.index', $product)))"
                                                 title="Stock batches" aria-label="Stock batches of {{ $product->name }}">

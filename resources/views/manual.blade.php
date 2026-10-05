@@ -106,7 +106,7 @@
             <x-manual.section id="roles" :title="$sections['roles']" :icon="$sectionIcons['roles']">
                 <p>Each account has a role. The role gives a starting set of permissions, and an Admin can switch individual permissions on or off for each person in <strong>Settings → Team</strong>.</p>
                 <div class="nexora-card overflow-x-auto">
-                    <table class="w-full min-w-[34rem] text-left text-sm">
+                    <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="border-b border-zinc-200 text-xs font-medium uppercase tracking-wider text-zinc-500">
                                 <th class="px-4 py-3">Role</th>
@@ -115,19 +115,19 @@
                         </thead>
                         <tbody class="divide-y divide-zinc-100 align-top">
                             <tr>
-                                <td class="whitespace-nowrap px-4 py-3"><span class="badge badge-danger">Super Admin</span></td>
+                                <td class="w-1/3 px-4 py-3 sm:w-auto"><span class="badge whitespace-normal badge-danger">Super Admin</span></td>
                                 <td class="px-4 py-3">Everything, always. Cannot be restricted, is hidden from other users' team list and is never paid through Salary. Manages every role including Admins, and is the only one who can use the Data tools.</td>
                             </tr>
                             <tr>
-                                <td class="whitespace-nowrap px-4 py-3"><span class="badge badge-info">Admin</span></td>
+                                <td class="w-1/3 px-4 py-3 sm:w-auto"><span class="badge whitespace-normal badge-info">Admin</span></td>
                                 <td class="px-4 py-3">Everything by default (a Super Admin can switch parts off). Changes shop info and low-stock emails, manages Managers, Cashiers, Technicians and Staff, force-closes shifts and sends supplier statements.</td>
                             </tr>
                             <tr>
-                                <td class="whitespace-nowrap px-4 py-3"><span class="badge badge-warning">Manager</span></td>
+                                <td class="w-1/3 px-4 py-3 sm:w-auto"><span class="badge whitespace-normal badge-warning">Manager</span></td>
                                 <td class="px-4 py-3">Every page except Salary, plus: create GRNs, stock transfers and stock outs, review closed shifts and add expenses.</td>
                             </tr>
                             <tr>
-                                <td class="whitespace-nowrap px-4 py-3"><span class="badge badge-default">Cashier · Technician · Staff</span></td>
+                                <td class="w-1/3 px-4 py-3 sm:w-auto"><span class="badge whitespace-normal badge-default">Cashier · Technician · Staff</span></td>
                                 <td class="px-4 py-3">Every page except Salary, plus adding / editing products and editing supplier contact details. Everything else (reversing bills, editing documents, deleting, recording payments…) must be switched on by an Admin.</td>
                             </tr>
                         </tbody>
