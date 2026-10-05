@@ -28,25 +28,11 @@ class FinanceService
      */
     public function overview(array $range): array
     {
-        $revenueCents = SupplierService::cents($this->sales($range)->sum('total_amount'));
-        $cogsCents = SupplierService::cents(DB::table('sale_items')
-            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->whereNull('sales.status')
-            ->whereBetween('sales.created_at', [$range['from'], $range['to']])
-            ->sum(DB::raw('sale_items.cost_price * sale_items.qty')));
-        $expensesCents = SupplierService::cents($this->expenses($range)->sum('amount'));
-        $grossCents = $revenueCents - $cogsCents;
-
+        $totals = $this->totals($range);
         $payables = Supplier::query()->owing()->orderByDesc('balance')->orderBy('name')->get(['id', 'name', 'balance']);
 
         return [
-            'revenue' => $revenueCents / 100,
-            'cogs' => $cogsCents / 100,
-            'gross_profit' => $grossCents / 100,
-            'expenses' => $expensesCents / 100,
-            'net_profit' => ($grossCents - $expensesCents) / 100,
-            'margin' => $revenueCents === 0 ? null : round($grossCents / $revenueCents * 100, 1),
-            'sales_count' => $this->sales($range)->count(),
+            ...$totals,
             'payment_methods' => $this->paymentMethods($range),
             'cashiers' => $this->sales($range)
                 ->selectRaw('cashier_id, max(cashier_name) as cashier_name, count(*) as sales_count, sum(total_amount) as revenue')
@@ -67,6 +53,35 @@ class FinanceService
                 'balance' => (float) $supplier->balance,
             ])->all(),
             'payables_total' => $payables->sum(fn (Supplier $supplier): int => SupplierService::cents($supplier->balance)) / 100,
+        ];
+    }
+
+    /**
+     * The profit figures for a date range, cancelled sales excluded. Shared by the Finance overview and the
+     * Dashboard so both always show the same numbers for the same period.
+     *
+     * @param  array{from: CarbonImmutable, to: CarbonImmutable}  $range
+     * @return array{revenue: float, cogs: float, gross_profit: float, expenses: float, net_profit: float, margin: ?float, sales_count: int}
+     */
+    public function totals(array $range): array
+    {
+        $revenueCents = SupplierService::cents($this->sales($range)->sum('total_amount'));
+        $cogsCents = SupplierService::cents(DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->whereNull('sales.status')
+            ->whereBetween('sales.created_at', [$range['from'], $range['to']])
+            ->sum(DB::raw('sale_items.cost_price * sale_items.qty')));
+        $expensesCents = SupplierService::cents($this->expenses($range)->sum('amount'));
+        $grossCents = $revenueCents - $cogsCents;
+
+        return [
+            'revenue' => $revenueCents / 100,
+            'cogs' => $cogsCents / 100,
+            'gross_profit' => $grossCents / 100,
+            'expenses' => $expensesCents / 100,
+            'net_profit' => ($grossCents - $expensesCents) / 100,
+            'margin' => $revenueCents === 0 ? null : round($grossCents / $revenueCents * 100, 1),
+            'sales_count' => $this->sales($range)->count(),
         ];
     }
 

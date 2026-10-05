@@ -57,19 +57,19 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                        <th class="whitespace-nowrap px-4 py-3">Shift No.</th>
-                        <th class="px-4 py-3">Cashier</th>
-                        <th class="px-4 py-3">Opened</th>
-                        <th class="px-4 py-3">Closed</th>
-                        <th class="px-4 py-3 text-right">Float</th>
-                        <th class="px-4 py-3 text-right">Cash</th>
-                        <th class="px-4 py-3 text-right">Card</th>
-                        <th class="px-4 py-3 text-right">KokoPay</th>
-                        <th class="px-4 py-3 text-right">Expected</th>
-                        <th class="px-4 py-3 text-right">Counted</th>
-                        <th class="px-4 py-3 text-right">Variance</th>
-                        <th class="px-4 py-3">Review</th>
-                        <th class="px-4 py-3 text-right"><span class="sr-only">Actions</span></th>
+                        <th class="whitespace-nowrap px-3 py-3">Shift No.</th>
+                        <th class="px-3 py-3">Cashier</th>
+                        <th class="px-3 py-3">Opened</th>
+                        <th class="px-3 py-3">Closed</th>
+                        <th class="px-3 py-3 text-right">Float</th>
+                        <th class="px-3 py-3 text-right">Cash</th>
+                        <th class="px-3 py-3 text-right">Card</th>
+                        <th class="px-3 py-3 text-right">KokoPay</th>
+                        <th class="px-3 py-3 text-right">Expected</th>
+                        <th class="px-3 py-3 text-right">Counted</th>
+                        <th class="px-3 py-3 text-right">Variance</th>
+                        <th class="px-3 py-3">Review</th>
+                        <th class="relative px-3 py-3 text-right"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
@@ -81,15 +81,15 @@
                             $review = Shift::REVIEW_STATUSES[$shift->review_status] ?? null;
                         @endphp
                         <tr class="hover:bg-zinc-50">
-                            <td class="whitespace-nowrap px-4 py-3 font-medium text-ink">
+                            <td class="whitespace-nowrap px-3 py-3 font-medium text-ink">
                                 {{ $shift->shift_no }}
                                 @if ($shift->force_closed)
                                     <span class="block text-xs font-normal text-amber-600">Force closed</span>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-ink">{{ $shift->cashier_name }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-zinc-600">{{ $shift->opened_at->format('M j, g:i A') }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">
+                            <td class="whitespace-nowrap px-3 py-3 text-ink">{{ $shift->cashier_name }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-zinc-600">{{ $shift->opened_at->format('M j, g:i A') }}</td>
+                            <td class="whitespace-nowrap px-3 py-3">
                                 @if ($isOpen)
                                     <x-badge variant="info">Open</x-badge>
                                     @if ($openDays >= 1)
@@ -101,16 +101,16 @@
                                     <span class="text-zinc-600">{{ $shift->closed_at?->format('M j, g:i A') }}</span>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ Money::format($shift->opening_float) }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ Money::format($shift->cash_sales_total) }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ Money::format($shift->card_sales_total) }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ Money::format($shift->kokopay_sales_total) }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums {{ $isOpen ? 'text-zinc-500' : 'text-ink' }}">
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ Money::format($shift->opening_float) }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ Money::format($shift->cash_sales_total) }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ Money::format($shift->card_sales_total) }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ Money::format($shift->kokopay_sales_total) }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums {{ $isOpen ? 'text-zinc-500' : 'text-ink' }}">
                                 {{ Money::format($isOpen ? ShiftService::expectedCash($shift) : $shift->expected_cash) }}
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ $shift->counted_cash === null ? '—' : Money::format($shift->counted_cash) }}</td>
+                            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ $shift->counted_cash === null ? '—' : Money::format($shift->counted_cash) }}</td>
                             <td @class([
-                                'whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums',
+                                'whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums',
                                 'text-red-600' => $variance !== null && $variance < 0,
                                 'text-green-700' => $variance !== null && $variance > 0,
                                 'text-ink' => $variance === 0.0,
@@ -122,14 +122,14 @@
                                     {{ $variance > 0 ? '+' : ($variance < 0 ? '-' : '') }}{{ Money::format(abs($variance)) }}
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3">
+                            <td class="whitespace-nowrap px-3 py-3">
                                 @if ($review)
                                     <x-badge :variant="$review['variant']">{{ $review['label'] }}</x-badge>
                                 @else
                                     <span class="text-zinc-400">—</span>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-right">
+                            <td class="whitespace-nowrap px-3 py-3 text-right">
                                 <button type="button" class="rounded p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-brand"
                                         x-on:click="show(@js(route('finance.shifts.show', $shift)))"
                                         title="View" aria-label="View {{ $shift->shift_no }}">

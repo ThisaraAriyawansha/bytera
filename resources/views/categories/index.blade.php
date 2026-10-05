@@ -26,9 +26,9 @@
         @if ($mainCategories->isEmpty())
             <x-empty-state icon="layers" title="No categories yet" message="Add a main category (e.g. Laptops), then add its subcategories (e.g. Gaming Laptops)." />
         @else
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($mainCategories as $mainCategory)
-                    <section class="nexora-card flex flex-col" x-data>
+                    <section class="nexora-card flex min-w-0 flex-col" x-data>
                         <div class="flex items-start justify-between gap-3 border-b border-zinc-200 px-4 py-3">
                             <div class="min-w-0">
                                 <h2 class="font-prata truncate text-base text-ink">{{ $mainCategory->name }}</h2>

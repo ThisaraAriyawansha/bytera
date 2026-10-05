@@ -68,6 +68,11 @@ export default function jobForm(config) {
 
         init() {
             this.$watch('customerQuery', () => this.searchCustomers());
+
+            // `/jobs?new=1` (the Dashboard's New Job button) opens the New Job Note straight away.
+            if (new URLSearchParams(window.location.search).get('new') === '1') {
+                this.openNew();
+            }
         },
 
         get isEditing() {

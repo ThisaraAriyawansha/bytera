@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Throwable;
 
 class SupplierController extends Controller
 {
@@ -104,7 +105,7 @@ class SupplierController extends Controller
 
         $email = (string) $supplier->email;
 
-        if (preg_match(StrictEmail::PATTERN, $email) !== 1) {
+        if (! StrictEmail::isValid($email)) {
             throw ValidationException::withMessages([
                 'email' => $email === ''
                     ? 'This supplier has no email address. Add one with Edit first.'
@@ -112,7 +113,13 @@ class SupplierController extends Controller
             ]);
         }
 
-        Mail::to($email)->send(new SupplierStatementMail($supplier, ShopSetting::current()));
+        try {
+            Mail::to($email)->send(new SupplierStatementMail($supplier, ShopSetting::current()));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages(['email' => 'The email could not be sent. Please try again.']);
+        }
 
         $supplier->update(['last_statement_sent_at' => now()]);
 

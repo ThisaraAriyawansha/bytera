@@ -87,7 +87,7 @@
                                     <th class="w-32 whitespace-nowrap px-3 py-2.5">Unit Price</th>
                                     <th class="w-28 px-3 py-2.5">Discount</th>
                                     <th class="whitespace-nowrap px-3 py-2.5 text-right">Total</th>
-                                    <th class="w-10 px-3 py-2.5"><span class="sr-only">Remove</span></th>
+                                    <th class="relative w-10 px-3 py-2.5"><span class="sr-only">Remove</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-100">
@@ -197,7 +197,7 @@
                             <th class="whitespace-nowrap px-5 py-3">Valid Until</th>
                             <th class="px-5 py-3 text-right">Total</th>
                             <th class="px-5 py-3">Status</th>
-                            <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                            <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100">

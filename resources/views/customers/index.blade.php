@@ -52,7 +52,9 @@
                                         <div class="text-xs text-zinc-400">{{ $customer->phone2 }}</div>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-zinc-600">{{ $customer->email ?: '—' }}</td>
+                                <td class="px-5 py-3 text-zinc-600">
+                                    <span class="block max-w-[16rem] truncate" @if ($customer->email) title="{{ $customer->email }}" @endif>{{ $customer->email ?: '—' }}</span>
+                                </td>
                                 <td class="min-w-[10rem] px-5 py-3 text-zinc-600">{{ $customer->address ?: '—' }}</td>
                                 <td class="px-5 py-3 text-right">
                                     @if ($customer->loyalty_points > 0)

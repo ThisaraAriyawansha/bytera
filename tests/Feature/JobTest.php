@@ -201,6 +201,19 @@ class JobTest extends TestCase
             ->assertJsonValidationErrors(['email' => 'This job has no customer email address.']);
     }
 
+    public function test_job_email_refuses_a_stored_address_that_lists_several_recipients(): void
+    {
+        Mail::fake();
+
+        $job = Job::factory()->create(['customer_email' => 'nimal@example.com, boss@example.com']);
+
+        $this->actingAs($this->cashier)
+            ->postJson(route('jobs.email', $job), ['type' => 'received'])
+            ->assertJsonValidationErrors(['email']);
+
+        Mail::assertNothingSent();
+    }
+
     public function test_the_export_lists_the_filtered_jobs_with_their_full_history(): void
     {
         $job = Job::factory()->create(['job_no' => 'JOB-00042']);

@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer(
-            ['components.layouts.base', 'components.layouts.app', 'auth.login'],
+            ['components.layouts.base', 'components.layouts.app', 'auth.login', 'manual'],
             fn (ViewContract $view) => $view->with('shop', ShopSetting::current()),
         );
 

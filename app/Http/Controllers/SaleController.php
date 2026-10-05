@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Throwable;
 
 class SaleController extends Controller
 {
@@ -130,13 +131,19 @@ class SaleController extends Controller
     {
         $email = (string) $sale->customer_email;
 
-        if (preg_match(StrictEmail::PATTERN, $email) !== 1) {
+        if (! StrictEmail::isValid($email)) {
             throw ValidationException::withMessages([
                 'email' => $email === '' ? 'This bill has no customer email address.' : "The customer's email address \"{$email}\" is not valid.",
             ]);
         }
 
-        Mail::to($email)->send(new SaleReceiptMail($sale->load('items'), ShopSetting::current(), $request->pdfBytes()));
+        try {
+            Mail::to($email)->send(new SaleReceiptMail($sale->load('items'), ShopSetting::current(), $request->pdfBytes()));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages(['email' => 'The email could not be sent. Please try again.']);
+        }
 
         return response()->json(['message' => "Bill emailed to {$email}."]);
     }

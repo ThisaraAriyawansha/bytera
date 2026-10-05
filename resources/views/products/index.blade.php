@@ -88,7 +88,7 @@
                                         </div>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-3 text-zinc-600">{{ $product->brand?->name ?? '—' }}</td>
-                                    <td class="whitespace-nowrap px-5 py-3 text-zinc-600">
+                                    <td class="min-w-[10rem] px-5 py-3 text-zinc-600">
                                         {{ $product->mainCategory?->name ?? '—' }}
                                         <span class="text-zinc-400">›</span>
                                         {{ $product->subCategory?->name ?? '—' }}

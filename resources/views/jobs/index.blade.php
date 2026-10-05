@@ -94,7 +94,7 @@
                                 <th class="px-5 py-3">Received</th>
                                 <th class="whitespace-nowrap px-5 py-3 text-right">Est. Cost</th>
                                 <th class="px-5 py-3">Status</th>
-                                <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                                <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100">

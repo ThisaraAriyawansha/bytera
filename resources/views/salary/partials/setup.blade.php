@@ -19,7 +19,7 @@
                         <th class="px-5 py-3">Role</th>
                         <th class="px-5 py-3">Salary Setup</th>
                         @if ($canManageConfig)
-                            <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                            <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                         @endif
                     </tr>
                 </thead>

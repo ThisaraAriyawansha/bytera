@@ -31,6 +31,13 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   .badge-default{background:#f4f4f5;color:#52525b} .badge-success{background:#f0fdf4;color:#15803d}
   .badge-warning{background:#fefce8;color:#a16207} .badge-danger{background:#fef2f2;color:#dc2626}
   .badge-info{background:#eff6ff;color:#1d4ed8}
+
+  /* User manual lists: black circle step numbers and red-dot bullets */
+  .manual-steps { counter-reset:manual-step; }
+  .manual-steps > li { position:relative; padding-left:2.25rem; counter-increment:manual-step; }
+  .manual-steps > li::before { content:counter(manual-step); position:absolute; left:0; top:.15rem; width:1.5rem; height:1.5rem; border-radius:9999px; background:#0a0a0a; color:#fff; font-family:Montserrat,sans-serif; font-size:12px; font-weight:700; line-height:1.5rem; text-align:center; }
+  .manual-bullets > li { position:relative; padding-left:1.25rem; }
+  .manual-bullets > li::before { content:''; position:absolute; left:.25rem; top:.7em; width:6px; height:6px; border-radius:9999px; background:#e30613; }
 }
 
 /* A4 print: only the print container is visible */

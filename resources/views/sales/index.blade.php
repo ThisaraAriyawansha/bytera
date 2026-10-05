@@ -1,6 +1,5 @@
 @php
     use App\Models\Sale;
-    use Illuminate\Support\HtmlString;
 
     $labelClasses = 'mb-1 block text-xs font-medium text-zinc-600';
     $errorClasses = 'mt-1 text-xs text-red-600';
@@ -345,8 +344,8 @@
             </form>
         </x-modal>
 
-        <x-modal name="pos-close-shift" max-width="sm" x-model="closeShiftModal"
-                 :title="new HtmlString('Close Shift — <span x-text=&quot;shift?.shift_no&quot;></span>')">
+        <x-modal name="pos-close-shift" max-width="sm" x-model="closeShiftModal">
+            <x-slot:title>Close Shift — <span x-text="shift?.shift_no"></span></x-slot:title>
             <form class="space-y-4" x-on:submit.prevent="closeShift()">
                 <div>
                     <label for="shift-counted" class="{{ $labelClasses }}">Counted cash *</label>
@@ -385,8 +384,8 @@
             </template>
         </x-modal>
 
-        <x-modal name="pos-batch" max-width="lg" x-model="batchModal"
-                 :title="new HtmlString('<span x-text=&quot;batchProduct?.name ?? \'Choose a batch\'&quot;></span>')">
+        <x-modal name="pos-batch" max-width="lg" x-model="batchModal">
+            <x-slot:title><span x-text="batchProduct?.name ?? 'Choose a batch'"></span></x-slot:title>
             <div class="space-y-2">
                 <button type="button" class="flex w-full items-center justify-between rounded-md border border-zinc-200 px-3 py-2.5 text-left text-sm hover:border-brand" x-on:click="chooseBatch(null)">
                     <span>
@@ -409,8 +408,8 @@
             </div>
         </x-modal>
 
-        <x-modal name="pos-serial" max-width="md" x-model="serialModal"
-                 :title="new HtmlString('<span x-text=&quot;serialProduct?.name ?? \'Pick serial numbers\'&quot;></span>')">
+        <x-modal name="pos-serial" max-width="md" x-model="serialModal">
+            <x-slot:title><span x-text="serialProduct?.name ?? 'Pick serial numbers'"></span></x-slot:title>
             <div class="space-y-3">
                 <p x-show="serialLoading" class="text-sm text-zinc-500">Loading serial numbers…</p>
                 <div x-show="! serialLoading && serialUnits.length > 0" class="flex items-center justify-between text-xs text-zinc-500">
@@ -438,8 +437,8 @@
             </div>
         </x-modal>
 
-        <x-modal name="pos-service" max-width="md" x-model="serviceModal"
-                 :title="new HtmlString('<span x-text=&quot;serviceDraft?.service.name&quot;></span>')">
+        <x-modal name="pos-service" max-width="md" x-model="serviceModal">
+            <x-slot:title><span x-text="serviceDraft?.service.name"></span></x-slot:title>
             <template x-if="serviceDraft">
                 <form class="space-y-4" x-on:submit.prevent="saveService()">
                     <div>
@@ -558,8 +557,8 @@
             </div>
         </x-modal>
 
-        <x-modal name="pos-charge" max-width="sm" x-model="chargeModal"
-                 :title="new HtmlString('<span x-text=&quot;methodLabels[chargeMethod] + \' Charge\'&quot;></span>')">
+        <x-modal name="pos-charge" max-width="sm" x-model="chargeModal">
+            <x-slot:title><span x-text="methodLabels[chargeMethod] + ' Charge'"></span></x-slot:title>
             <form class="space-y-4" x-on:submit.prevent="saveCharge()">
                 <div>
                     <label for="pos-charge-percent" class="{{ $labelClasses }}">Surcharge %</label>

@@ -89,7 +89,7 @@ class ProfileController extends Controller
                 return 'This verification link is no longer valid. Request a new one.';
             }
 
-            if (preg_match(StrictEmail::PATTERN, $newEmail) !== 1) {
+            if (! StrictEmail::isValid($newEmail)) {
                 return 'This verification link is not valid.';
             }
 

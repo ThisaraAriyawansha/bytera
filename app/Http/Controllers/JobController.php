@@ -181,7 +181,7 @@ class JobController extends Controller
         $type = $request->validate(['type' => ['required', Rule::in(['received', 'update'])]])['type'];
         $email = (string) $job->customer_email;
 
-        if (preg_match(StrictEmail::PATTERN, $email) !== 1) {
+        if (! StrictEmail::isValid($email)) {
             throw ValidationException::withMessages([
                 'email' => $email === '' ? 'This job has no customer email address.' : "The customer's email address \"{$email}\" is not valid.",
             ]);

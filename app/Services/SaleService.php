@@ -791,10 +791,7 @@ class SaleService
         }
 
         $shop = ShopSetting::current();
-        $recipients = array_values(array_filter(
-            $shop->notify_emails ?? [],
-            fn (mixed $email): bool => is_string($email) && preg_match(StrictEmail::PATTERN, $email) === 1,
-        ));
+        $recipients = array_values(array_filter($shop->notify_emails ?? [], StrictEmail::isValid(...)));
 
         if ($recipients === []) {
             return;

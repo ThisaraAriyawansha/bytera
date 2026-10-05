@@ -6,6 +6,7 @@ use App\Mail\PasswordResetCodeMail;
 use App\Models\PasswordResetOtp;
 use App\Models\ShopSetting;
 use App\Models\User;
+use App\Rules\StrictEmail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -31,7 +32,7 @@ class PasswordResetService
 
         $user = User::query()->where('email', $email)->first();
 
-        if ($user === null || $user->status !== 'active') {
+        if ($user === null || $user->status !== 'active' || ! StrictEmail::isValid($user->email)) {
             return;
         }
 

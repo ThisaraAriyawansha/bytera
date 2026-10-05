@@ -307,7 +307,7 @@
                                                 <th class="px-4 py-2.5">Method</th>
                                                 <th class="whitespace-nowrap px-4 py-2.5 text-right">Balance After</th>
                                                 @if ($canEditPayment)
-                                                    <th class="px-4 py-2.5 text-right"><span class="sr-only">Actions</span></th>
+                                                    <th class="relative px-4 py-2.5 text-right"><span class="sr-only">Actions</span></th>
                                                 @endif
                                             </tr>
                                         </thead>

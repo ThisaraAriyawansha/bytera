@@ -27,7 +27,7 @@
                         <th class="px-5 py-3">Period</th>
                         <th class="whitespace-nowrap px-5 py-3">Issued By</th>
                         <th class="px-5 py-3">Date</th>
-                        <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                        <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">

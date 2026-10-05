@@ -70,7 +70,7 @@
                 <tr class="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
                     <th class="px-5 py-3">Product</th>
                     <th class="px-5 py-3 text-right">Qty</th>
-                    <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                    <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100">

@@ -138,6 +138,15 @@ class PasswordResetTest extends TestCase
         ])->assertJsonValidationErrors(['turnstile_token']);
     }
 
+    public function test_no_code_is_emailed_to_a_malformed_stored_address(): void
+    {
+        User::factory()->create(['email' => '"kasun perera"@example.com']);
+
+        $this->requestCode('"kasun perera"@example.com')->assertOk()->assertJsonPath('message', self::GENERIC_MESSAGE);
+
+        Mail::assertNothingSent();
+    }
+
     public function test_reset_code_email_has_html_and_text_versions_with_shop_name(): void
     {
         ShopSetting::query()->firstOrFail()->update(['name' => 'Test Shop', 'phone' => '0771234567']);

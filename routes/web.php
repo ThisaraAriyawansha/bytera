@@ -1,17 +1,20 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataToolController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\FinanceShiftController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\ManualController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\ProfileController;
@@ -32,6 +35,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(Auth::check() ? 'dashboard' : 'login'));
+Route::get('/manual', ManualController::class)->name('manual');
 
 Route::middleware('guest')->prefix('auth')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -46,7 +50,7 @@ Route::middleware('guest')->prefix('auth')->group(function () {
 Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/auth/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    Route::view('/dashboard', 'dashboard')->middleware('can:dashboard.view')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('can:dashboard.view')->name('dashboard');
     Route::middleware('can:sales.view')->group(function () {
         Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
         Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
@@ -203,7 +207,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/{salaryPayment}', [SalaryController::class, 'destroy'])->name('destroy');
     });
 
-    Route::view('/audit-log', 'audit-log.index')->middleware('can:auditLog.view')->name('audit-log.index');
+    Route::get('/audit-log', [AuditLogController::class, 'index'])->middleware('can:auditLog.view')->name('audit-log.index');
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
         Route::put('/shop', [SettingsController::class, 'updateShop'])->name('shop.update');

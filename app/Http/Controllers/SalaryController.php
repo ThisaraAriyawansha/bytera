@@ -142,7 +142,7 @@ class SalaryController extends Controller
     {
         $email = (string) $salaryPayment->user?->email;
 
-        if (preg_match(StrictEmail::PATTERN, $email) !== 1) {
+        if (! StrictEmail::isValid($email)) {
             throw ValidationException::withMessages([
                 'email' => $email === '' ? 'This employee has no email address.' : "The employee's email address \"{$email}\" is not valid.",
             ]);

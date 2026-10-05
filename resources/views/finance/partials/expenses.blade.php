@@ -54,7 +54,7 @@
                         <th class="px-5 py-3">Drawer</th>
                         <th class="px-5 py-3">Date</th>
                         @if ($canDeleteExpense)
-                            <th class="px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
+                            <th class="relative px-5 py-3 text-right"><span class="sr-only">Actions</span></th>
                         @endif
                     </tr>
                 </thead>
