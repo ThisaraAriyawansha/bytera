@@ -2,15 +2,21 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\BillController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DataToolController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\FinanceShiftController;
 use App\Http\Controllers\GrnController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingsController;
@@ -21,6 +27,7 @@ use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
+use App\Http\Controllers\WarrantyController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -49,10 +56,20 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/shifts/{shift}/close', [ShiftController::class, 'close'])->name('shifts.close');
 
         Route::get('/api/products/{product}/batches', [ProductStockController::class, 'availableBatches'])->name('api.products.batches');
+        Route::get('/api/jobs/billable', [JobController::class, 'billable'])->name('api.jobs.billable');
     });
 
     Route::post('/sales/{sale}/email', [SaleController::class, 'email'])->middleware('throttle:10,1')->name('sales.email');
-    Route::view('/jobs', 'jobs.index')->middleware('can:jobs.view')->name('jobs.index');
+
+    Route::middleware('can:jobs.view')->prefix('jobs')->name('jobs.')->group(function () {
+        Route::get('/', [JobController::class, 'index'])->name('index');
+        Route::post('/', [JobController::class, 'store'])->name('store');
+        Route::get('/export', [JobController::class, 'export'])->name('export');
+        Route::get('/{job}', [JobController::class, 'show'])->name('show');
+        Route::put('/{job}', [JobController::class, 'update'])->name('update');
+        Route::post('/{job}/status', [JobController::class, 'updateStatus'])->name('status');
+        Route::post('/{job}/email', [JobController::class, 'email'])->middleware('throttle:10,1')->name('email');
+    });
 
     Route::middleware('can:services.view')->group(function () {
         Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
@@ -61,9 +78,25 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
     });
 
-    Route::view('/bills', 'bills.index')->middleware('can:bills.view')->name('bills.index');
-    Route::view('/quotations', 'quotations.index')->middleware('can:quotations.view')->name('quotations.index');
-    Route::view('/warranty', 'warranty.index')->middleware('can:warranty.view')->name('warranty.index');
+    Route::middleware('can:bills.view')->prefix('bills')->name('bills.')->group(function () {
+        Route::get('/', [BillController::class, 'index'])->name('index');
+        Route::get('/{sale}', [BillController::class, 'show'])->name('show');
+        Route::put('/{sale}', [BillController::class, 'update'])->name('update');
+        Route::post('/{sale}/reverse', [BillController::class, 'reverse'])->name('reverse');
+    });
+
+    Route::middleware('can:quotations.view')->prefix('quotations')->name('quotations.')->group(function () {
+        Route::get('/', [QuotationController::class, 'index'])->name('index');
+        Route::post('/', [QuotationController::class, 'store'])->name('store');
+        Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
+        Route::post('/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('status');
+        Route::delete('/{quotation}', [QuotationController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::middleware('can:warranty.view')->prefix('warranty')->name('warranty.')->group(function () {
+        Route::get('/', [WarrantyController::class, 'index'])->name('index');
+        Route::post('/{warranty}/claim', [WarrantyController::class, 'claim'])->name('claim');
+    });
 
     Route::middleware('can:products.view')->prefix('products')->name('products.')->scopeBindings()->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
@@ -147,8 +180,28 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/{supplier}/payments/{payment}', [SupplierPaymentController::class, 'update'])->name('payments.update');
     });
 
-    Route::view('/finance', 'finance.index')->middleware('can:finance.view')->name('finance.index');
-    Route::view('/salary', 'salary.index')->middleware('can:salary.view')->name('salary.index');
+    Route::middleware('can:finance.view')->prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', [FinanceController::class, 'index'])->name('index');
+        Route::get('/export', [FinanceController::class, 'export'])->name('export');
+
+        Route::get('/shifts/{shift}', [FinanceShiftController::class, 'show'])->name('shifts.show');
+        Route::post('/shifts/{shift}/force-close', [FinanceShiftController::class, 'forceClose'])->name('shifts.force-close');
+        Route::post('/shifts/{shift}/review', [FinanceShiftController::class, 'review'])->name('shifts.review');
+
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    });
+
+    Route::middleware('can:salary.view')->prefix('salary')->name('salary.')->group(function () {
+        Route::get('/', [SalaryController::class, 'index'])->name('index');
+        Route::post('/', [SalaryController::class, 'store'])->name('store');
+        Route::get('/commission-items', [SalaryController::class, 'commissionItems'])->name('commission-items');
+        Route::put('/employees/{user}', [SalaryController::class, 'updateSetup'])->name('setup.update');
+
+        Route::get('/{salaryPayment}', [SalaryController::class, 'show'])->name('show');
+        Route::post('/{salaryPayment}/email', [SalaryController::class, 'email'])->middleware('throttle:10,1')->name('email');
+        Route::delete('/{salaryPayment}', [SalaryController::class, 'destroy'])->name('destroy');
+    });
 
     Route::view('/audit-log', 'audit-log.index')->middleware('can:auditLog.view')->name('audit-log.index');
     Route::prefix('settings')->name('settings.')->group(function () {

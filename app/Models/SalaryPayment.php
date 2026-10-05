@@ -29,6 +29,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class SalaryPayment extends Model
 {
     /**
+     * Salary types and their labels (SPEC §8.20).
+     *
+     * @var array<string, string>
+     */
+    public const TYPES = [
+        'monthly' => 'Monthly',
+        'commission' => 'Commission',
+        'hybrid' => 'Hybrid',
+    ];
+
+    /**
+     * Get the type label, e.g. "Hybrid".
+     */
+    public function typeLabel(): string
+    {
+        return self::TYPES[$this->type] ?? $this->type;
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

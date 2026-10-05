@@ -15,7 +15,9 @@
                 <h1 class="font-prata text-2xl text-ink">New Sale</h1>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    {{-- "Find Job to Bill" (SPEC §8.4) goes here. --}}
+                    <button type="button" class="nexora-btn nexora-btn-outline !py-1.5" x-on:click="openJobPicker()">
+                        <x-lucide-wrench class="h-4 w-4" /> Find Job to Bill
+                    </button>
 
                     <button type="button" x-show="! shift" x-cloak x-on:click="startOpenShift()"
                             class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100">
@@ -143,7 +145,33 @@
                     <p class="mt-1 text-xs text-zinc-500" x-show="! customer">Select a customer to earn 1% loyalty reward</p>
                 </div>
 
-                {{-- 2. Attached job (Find Job to Bill) renders here. --}}
+                {{-- 2. Attached job --}}
+                <template x-if="job">
+                    <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="flex items-center gap-1.5 text-sm font-medium text-ink"><x-lucide-wrench class="h-3.5 w-3.5 text-zinc-400" /> <span x-text="job.job_no"></span></p>
+                                <p class="truncate text-xs text-zinc-500" x-text="`${job.customer_name} · ${job.device_label}`"></p>
+                            </div>
+                            <button type="button" class="shrink-0 text-zinc-400 hover:text-brand" x-on:click="detachJob()" aria-label="Remove job">
+                                <x-lucide-x class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <ul class="mt-2 space-y-1 border-t border-zinc-200 pt-2 text-xs">
+                            <template x-for="(line, index) in job.lines" :key="index">
+                                <li class="flex justify-between gap-2">
+                                    <span class="min-w-0 text-zinc-600">
+                                        <span x-text="line.name"></span>
+                                        <span x-show="line.chargeType === 'free' && line.freeReason" class="text-zinc-400" x-text="` (${line.freeReason})`"></span>
+                                    </span>
+                                    <span class="shrink-0 tabular-nums"
+                                          x-bind:class="line.chargeType === 'free' ? 'text-green-700' : (line.price < 0 ? 'text-red-600' : 'text-ink')"
+                                          x-text="line.chargeType === 'free' ? 'Free' : (line.price < 0 ? `- ${money(-jobLinePrice(line))}` : money(jobLinePrice(line)))"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
 
                 {{-- 3. Lines --}}
                 <div class="space-y-2">
@@ -504,6 +532,30 @@
                     <button type="submit" class="nexora-btn nexora-btn-primary disabled:opacity-60" x-bind:disabled="customerSaving" x-text="customerSaving ? 'Saving…' : 'Save Customer'"></button>
                 </div>
             </form>
+        </x-modal>
+
+        <x-modal name="pos-job" title="Find Job to Bill" max-width="lg" x-model="jobModal">
+            <div class="space-y-3">
+                <div class="relative">
+                    <x-lucide-search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <input type="search" class="nexora-input pl-9" placeholder="Job no. (e.g. 123), customer name or mobile…" autocomplete="off" autofocus x-model="jobQuery" aria-label="Search jobs">
+                </div>
+                <p class="text-xs text-zinc-400">Only jobs marked <span class="font-medium text-green-700">Job Done</span> are listed.</p>
+                <p x-show="jobLoading" x-cloak class="text-xs text-zinc-400">Searching…</p>
+                <p x-show="jobError" x-text="jobError" x-cloak class="{{ $errorClasses }}"></p>
+                <div class="max-h-80 divide-y divide-zinc-100 overflow-y-auto rounded-md border border-zinc-200" x-show="jobResults.length > 0" x-cloak>
+                    <template x-for="result in jobResults" :key="result.id">
+                        <button type="button" class="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm hover:bg-zinc-50" x-on:click="attachJob(result)">
+                            <span class="min-w-0">
+                                <span class="block font-medium text-ink" x-text="result.job_no"></span>
+                                <span class="block truncate text-xs text-zinc-500" x-text="`${result.customer_name} · ${result.customer_phone} · ${result.device_label}`"></span>
+                            </span>
+                            <span class="shrink-0 font-prata tabular-nums text-ink" x-text="money(result.lines.reduce((sum, line) => sum + Number(line.price), 0))"></span>
+                        </button>
+                    </template>
+                </div>
+                <p x-show="! jobLoading && ! jobError && jobResults.length === 0" class="py-4 text-center text-sm text-zinc-500">No finished jobs found.</p>
+            </div>
         </x-modal>
 
         <x-modal name="pos-charge" max-width="sm" x-model="chargeModal"

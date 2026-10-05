@@ -21,12 +21,13 @@ const blankCustomerForm = () => ({ name: '', phone: '', email: '' });
  * Bill maths mirrors App\Services\SaleService::quote() step for step (whole cents, Math.round = floor(x + 0.5)),
  * and the server re-checks the total it is sent.
  *
- * Job billing ("Find Job to Bill") is meant to plug in as `job` + its billable lines, priced like services
- * (paid lines take the surcharge; free and negative lines don't).
+ * A finished job ("Find Job to Bill") joins the bill as `job` with the billable lines worked out by the server
+ * (App\Services\JobService::billableLines); paid lines take the surcharge, free and negative lines don't.
  */
 export default function posCart({ products, services, mainCategories, shift, urls }) {
     let nextKey = 1;
     let customerSearchTimer = null;
+    let jobSearchTimer = null;
 
     return {
         money: formatMoney,
@@ -91,6 +92,13 @@ export default function posCart({ products, services, mainCategories, shift, url
         customerForm: blankCustomerForm(),
         customerErrors: {},
 
+        job: null,
+        jobModal: false,
+        jobQuery: '',
+        jobResults: [],
+        jobLoading: false,
+        jobError: '',
+
         chargeModal: false,
         chargeMethod: 'card',
         chargeInput: '',
@@ -109,6 +117,7 @@ export default function posCart({ products, services, mainCategories, shift, url
             });
 
             this.$watch('customerQuery', () => this.searchCustomers());
+            this.$watch('jobQuery', () => this.searchJobs());
 
             // However Sale Complete is closed, the sold cart must not stay around to be checked out twice.
             this.$watch('completeModal', (open) => {
@@ -472,7 +481,72 @@ export default function posCart({ products, services, mainCategories, shift, url
         },
 
         get cartIsEmpty() {
-            return this.lines.length === 0 && this.serviceLines.length === 0;
+            return this.lines.length === 0 && this.serviceLines.length === 0 && this.job === null;
+        },
+
+        // ── Find Job to Bill ───────────────────────────────────────────────────
+
+        openJobPicker() {
+            this.jobQuery = '';
+            this.jobError = '';
+            this.jobModal = true;
+            this.searchJobs(0);
+        },
+
+        /**
+         * Finished (Job Done) jobs by job no ("123" → JOB-00123), customer name or mobile; the latest with no term.
+         */
+        searchJobs(delay = 300) {
+            clearTimeout(jobSearchTimer);
+
+            const term = this.jobQuery.trim();
+            this.jobLoading = true;
+
+            jobSearchTimer = setTimeout(async () => {
+                try {
+                    const url = new URL(urls.jobSearch, window.location.origin);
+                    url.searchParams.set('q', term);
+
+                    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+                    if (! response.ok) {
+                        throw new Error(String(response.status));
+                    }
+
+                    const { data } = await response.json();
+
+                    if (this.jobQuery.trim() === term) {
+                        this.jobResults = data ?? [];
+                        this.jobError = '';
+                    }
+                } catch (error) {
+                    this.jobResults = [];
+                    this.jobError = 'Could not load the jobs. Please try again.';
+                } finally {
+                    this.jobLoading = false;
+                }
+            }, delay);
+        },
+
+        /**
+         * Attach the job; its customer becomes the bill's customer when none is selected.
+         */
+        attachJob(job) {
+            this.job = job;
+
+            if (! this.customer && job.customer) {
+                this.selectCustomer(job.customer);
+            }
+
+            this.jobModal = false;
+        },
+
+        detachJob() {
+            this.job = null;
+        },
+
+        jobLinePrice(line) {
+            return line.surcharge ? this.price(line.price) : Number(line.price);
         },
 
         // ── Customer ───────────────────────────────────────────────────────────
@@ -626,6 +700,7 @@ export default function posCart({ products, services, mainCategories, shift, url
 
         get baseSubtotalCents() {
             return this.lines.reduce((sum, line) => sum + (cents(line.basePrice) - cents(line.discount)) * line.qty, 0)
+                + (this.job?.lines ?? []).reduce((sum, line) => sum + cents(line.price), 0)
                 + this.serviceLines.reduce((sum, line) => sum + cents(line.basePrice), 0);
         },
 
@@ -666,6 +741,7 @@ export default function posCart({ products, services, mainCategories, shift, url
 
         get subtotalCents() {
             return this.lines.reduce((sum, line) => sum + this.lineTotalCents(line), 0)
+                + (this.job?.lines ?? []).reduce((sum, line) => sum + cents(this.jobLinePrice(line)), 0)
                 + this.serviceLines.reduce((sum, line) => sum + cents(this.price(line.basePrice)), 0);
         },
 
@@ -813,6 +889,7 @@ export default function posCart({ products, services, mainCategories, shift, url
         payload() {
             return {
                 customer_id: this.customer?.id ?? null,
+                job_id: this.job?.id ?? null,
                 items: this.lines.map((line) => ({
                     product_id: line.product_id,
                     qty: line.track_serial ? null : line.qty,
@@ -880,6 +957,7 @@ export default function posCart({ products, services, mainCategories, shift, url
             this.completed = null;
             this.lines = [];
             this.serviceLines = [];
+            this.job = null;
             this.customer = null;
             this.billDiscount = '';
             this.redeemPoints = '';

@@ -30,6 +30,9 @@
         <div style="text-align:right;">
             <div style="font-size:9pt; font-weight:600; letter-spacing:.2em; color:#e30613;">INVOICE</div>
             <div style="font-family:Montserrat, sans-serif; font-size:14pt; font-weight:700;">{{ $sale->invoice_no }}</div>
+            @if ($sale->status === 'cancelled')
+                <div style="display:inline-block; margin:1mm 0; padding:0.5mm 2mm; border:1.5px solid #dc2626; color:#dc2626; font-size:9pt; font-weight:700; letter-spacing:.15em;">CANCELLED</div>
+            @endif
             <div style="{{ $muted }}">Date: {{ $sale->created_at->format('M j, Y') }}</div>
             <div style="{{ $muted }}">Time: {{ $sale->created_at->format('g:i A') }}</div>
         </div>
@@ -75,7 +78,10 @@
         </thead>
         <tbody>
             @foreach ($sale->services ?? [] as $service)
-                @php $isFree = ($service['chargeType'] ?? 'paid') === 'free'; @endphp
+                @php
+                    $isFree = ($service['chargeType'] ?? 'paid') === 'free';
+                    $servicePrice = (float) $service['price'] < 0 ? '- '.Money::format(abs((float) $service['price'])) : Money::format($service['price']);
+                @endphp
                 <tr>
                     <td style="{{ $cell }}">{{ $row++ }}</td>
                     <td style="{{ $cell }}">
@@ -89,9 +95,9 @@
                         @endif
                     </td>
                     <td style="{{ $cell }} text-align:right;">1</td>
-                    <td style="{{ $cell }} text-align:right;">{{ $isFree ? 'Free' : Money::format($service['price']) }}</td>
+                    <td style="{{ $cell }} text-align:right;">{{ $isFree ? 'Free' : $servicePrice }}</td>
                     <td style="{{ $cell }} text-align:right;">—</td>
-                    <td style="{{ $cell }} text-align:right;">{{ $isFree ? 'Free' : Money::format($service['price']) }}</td>
+                    <td style="{{ $cell }} text-align:right;">{{ $isFree ? 'Free' : $servicePrice }}</td>
                 </tr>
             @endforeach
 

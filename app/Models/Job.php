@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Database\Factories\JobFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -95,6 +97,26 @@ class Job extends Model
      * @var list<string>
      */
     public const CONDITIONS = ['Good', 'Scratches', 'Cracked', 'Broken Hinges', 'Liquid Damage', 'Missing Parts'];
+
+    /**
+     * Scope the query to the Jobs search: the exact job number ("123" means JOB-00123), or a customer name,
+     * mobile or second mobile starting with the term.
+     *
+     * @param  Builder<Job>  $query
+     */
+    #[Scope]
+    protected function matching(Builder $query, string $term): void
+    {
+        $term = trim($term);
+        $jobNo = ctype_digit($term) ? sprintf('JOB-%05d', (int) $term) : strtoupper($term);
+        $prefix = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+
+        $query->where(fn (Builder $query) => $query
+            ->where('job_no', $jobNo)
+            ->orWhere('customer_name', 'like', $prefix)
+            ->orWhere('customer_phone', 'like', $prefix)
+            ->orWhere('customer_phone2', 'like', $prefix));
+    }
 
     /**
      * Get the status label, e.g. "Job Done".

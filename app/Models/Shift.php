@@ -38,6 +38,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Shift extends Model
 {
     /**
+     * Review statuses with their label and badge variant (SPEC §8.19).
+     *
+     * @var array<string, array{label: string, variant: string}>
+     */
+    public const REVIEW_STATUSES = [
+        'pending' => ['label' => 'Pending', 'variant' => 'warning'],
+        'approved' => ['label' => 'Approved', 'variant' => 'success'],
+        'flagged' => ['label' => 'Flagged', 'variant' => 'danger'],
+    ];
+
+    /**
+     * Get the whole days an open shift has been open (0 for a closed shift or one opened within the last day).
+     */
+    public function openDays(): int
+    {
+        return $this->status === 'open' ? (int) floor($this->opened_at->diffInDays(now())) : 0;
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

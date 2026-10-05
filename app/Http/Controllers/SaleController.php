@@ -77,6 +77,7 @@ class SaleController extends Controller
                     'units' => route('api.products.units', '__PRODUCT__'),
                     'customerSearch' => route('api.customers.search'),
                     'customerStore' => route('sales.customers.store'),
+                    'jobSearch' => route('api.jobs.billable'),
                 ],
             ],
         ]);

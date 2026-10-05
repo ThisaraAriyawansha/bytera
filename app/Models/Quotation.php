@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +26,59 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Quotation extends Model
 {
+    /**
+     * Quotation statuses and their labels / badge variants.
+     *
+     * @var array<string, array{label: string, variant: string}>
+     */
+    public const STATUSES = [
+        'sent' => ['label' => 'Sent', 'variant' => 'info'],
+        'accepted' => ['label' => 'Accepted', 'variant' => 'success'],
+        'rejected' => ['label' => 'Rejected', 'variant' => 'danger'],
+        'expired' => ['label' => 'Expired', 'variant' => 'warning'],
+        'converted' => ['label' => 'Converted', 'variant' => 'default'],
+    ];
+
+    /**
+     * The customer name stored and printed when none is typed.
+     */
+    public const WALK_IN_CUSTOMER = 'Walk-in Customer';
+
+    /**
+     * Get the status to show: a sent quotation past its valid-until date shows as expired.
+     */
+    public function displayStatus(): string
+    {
+        return $this->status === 'sent' && $this->valid_until->lt(today()) ? 'expired' : $this->status;
+    }
+
+    /**
+     * Get the label of the status to show.
+     */
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->displayStatus()]['label'];
+    }
+
+    /**
+     * Scope the query to quotations showing a status (a sent one past its date counts as expired).
+     *
+     * @param  Builder<Quotation>  $query
+     */
+    #[Scope]
+    protected function withDisplayStatus(Builder $query, string $status): void
+    {
+        $today = today()->toDateString();
+
+        match ($status) {
+            'sent' => $query->where('status', 'sent')->where('valid_until', '>=', $today),
+            'expired' => $query->where(fn (Builder $query) => $query
+                ->where('status', 'expired')
+                ->orWhere(fn (Builder $query) => $query->where('status', 'sent')->where('valid_until', '<', $today))),
+            default => $query->where('status', $status),
+        };
+    }
+
     /**
      * Get the attributes that should be cast.
      *

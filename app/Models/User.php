@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\Money;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -58,6 +59,22 @@ class User extends Authenticatable
         }
 
         return mb_strtoupper($initials);
+    }
+
+    /**
+     * Get the salary setup as one line (SPEC §8.20): "Monthly Rs. 50,000", "Commission 5%",
+     * "Hybrid Rs. 30,000 + 2.5%" or "Not configured".
+     */
+    public function salarySetupLabel(): string
+    {
+        $percent = rtrim(rtrim(number_format((float) $this->salary_commission_percent, 2, '.', ''), '0'), '.').'%';
+
+        return match ($this->salary_type) {
+            'monthly' => 'Monthly '.Money::format($this->salary_monthly_amount),
+            'commission' => "Commission {$percent}",
+            'hybrid' => 'Hybrid '.Money::format($this->salary_monthly_amount)." + {$percent}",
+            default => 'Not configured',
+        };
     }
 
     /**

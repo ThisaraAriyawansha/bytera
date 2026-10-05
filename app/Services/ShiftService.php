@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Shift;
 use App\Models\User;
+use App\Support\Permissions;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -97,6 +99,101 @@ class ShiftService
     }
 
     /**
+     * Force Close (Admin Override, SPEC §8.19): an Admin / Super Admin closes anyone's open shift with the counted
+     * cash, using the same Expected / Variance maths, marked `force_closed` with who closed it.
+     *
+     * @throws ValidationException
+     */
+    public function forceClose(Shift $shift, User $admin, float|int|string $countedCash, ?string $note = null): Shift
+    {
+        if (! Permissions::isAdmin($admin)) {
+            throw new AuthorizationException('Only an Admin or Super Admin can force close a shift.');
+        }
+
+        return DB::transaction(function () use ($shift, $admin, $countedCash, $note): Shift {
+            return $this->settle($this->lockShift($shift->id), $admin, $countedCash, $note, forceClosed: true);
+        });
+    }
+
+    /**
+     * Review a closed shift (`finance.reviewShift`): Approve or Flag it with a note. A review can be changed later.
+     *
+     * @param  'approved'|'flagged'  $decision
+     *
+     * @throws ValidationException
+     */
+    public function review(Shift $shift, User $reviewer, string $decision, ?string $note = null): Shift
+    {
+        return DB::transaction(function () use ($shift, $reviewer, $decision, $note): Shift {
+            $shift = $this->lockShift($shift->id);
+
+            if ($shift->status !== 'closed') {
+                throw ValidationException::withMessages(['shift' => "{$shift->shift_no} is still open — close it before reviewing."]);
+            }
+
+            $shift->update([
+                'review_status' => $decision,
+                'reviewed_at' => now(),
+                'reviewed_by_id' => $reviewer->id,
+                'reviewed_by_name' => $reviewer->name ?: $reviewer->email,
+                'review_note' => trim((string) $note),
+            ]);
+
+            return $shift;
+        });
+    }
+
+    /**
+     * Lock a shift that cash is about to be paid out of (an expense or salary "paid from cash drawer"). It must
+     * still be open.
+     *
+     * @throws ValidationException
+     */
+    public function lockOpenShift(int $shiftId, string $errorKey = 'shift_id'): Shift
+    {
+        $this->ensureTransaction();
+
+        $shift = Shift::query()->whereKey($shiftId)->lockForUpdate()->first();
+
+        if ($shift === null || $shift->status !== 'open') {
+            throw ValidationException::withMessages([
+                $errorKey => ($shift === null ? 'That shift' : $shift->shift_no).' is not open — choose an open shift to pay from.',
+            ]);
+        }
+
+        return $shift;
+    }
+
+    /**
+     * Pay cash out of a locked open shift's drawer: `cash_expenses_total += amount`, lowering its expected cash.
+     */
+    public function recordCashExpense(Shift $shift, float|int|string $amount): void
+    {
+        $this->ensureTransaction();
+
+        $shift->cash_expenses_total = (SupplierService::cents($shift->cash_expenses_total) + SupplierService::cents($amount)) / 100;
+        $shift->save();
+    }
+
+    /**
+     * Put a deleted payout back into a locked shift's drawer (the opposite of recordCashExpense()). Only while
+     * the shift is still open — a closed shift's figures are final. Returns whether the shift was changed.
+     */
+    public function removeCashExpense(Shift $shift, float|int|string $amount): bool
+    {
+        $this->ensureTransaction();
+
+        if ($shift->status !== 'open') {
+            return false;
+        }
+
+        $shift->cash_expenses_total = max(0, SupplierService::cents($shift->cash_expenses_total) - SupplierService::cents($amount)) / 100;
+        $shift->save();
+
+        return true;
+    }
+
+    /**
      * Lock the cashier's open shift for a sale; it must be open and belong to them (SPEC §8.4 checkout step 1).
      *
      * @throws ValidationException
@@ -139,6 +236,26 @@ class ShiftService
     }
 
     /**
+     * Take a reversed sale back out of a locked shift: one sale fewer, and each payment leg subtracted from its
+     * method's total (the exact opposite of recordSale()).
+     *
+     * @param  list<array{method: string, amount: float|int|string}>  $legs
+     */
+    public function removeSale(Shift $shift, array $legs): void
+    {
+        $this->ensureTransaction();
+
+        $shift->sales_count = max(0, $shift->sales_count - 1);
+
+        foreach ($legs as $leg) {
+            $column = self::SALES_TOTAL_COLUMNS[$leg['method']];
+            $shift->{$column} = (SupplierService::cents($shift->{$column}) - SupplierService::cents($leg['amount'])) / 100;
+        }
+
+        $shift->save();
+    }
+
+    /**
      * Get the cash the drawer should hold: opening float + cash sales − cash paid out.
      */
     public static function expectedCash(Shift $shift): float
@@ -149,7 +266,7 @@ class ShiftService
     }
 
     /**
-     * Close a locked open shift with the counted cash. Shared by the cashier's close and (later) the admin force close.
+     * Close a locked open shift with the counted cash. Shared by the cashier's close and the admin force close.
      *
      * @throws ValidationException
      */

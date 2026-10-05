@@ -14,15 +14,15 @@ class DateRange
     public const DEFAULT_DAYS = 30;
 
     /**
-     * Resolve the From / To filter from the request, falling back to the last 30 days.
+     * Resolve the From / To filter from the request, falling back to the last 30 days (or `$defaultFrom` → today).
      * `from` is the start of its day and `to` the end of its day, ready for `whereBetween`.
      *
      * @return array{from: CarbonImmutable, to: CarbonImmutable}
      */
-    public static function fromRequest(Request $request, string $fromKey = 'from', string $toKey = 'to'): array
+    public static function fromRequest(Request $request, string $fromKey = 'from', string $toKey = 'to', ?CarbonImmutable $defaultFrom = null): array
     {
         $to = self::parse($request->query($toKey)) ?? CarbonImmutable::today();
-        $from = self::parse($request->query($fromKey)) ?? $to->subDays(self::DEFAULT_DAYS);
+        $from = self::parse($request->query($fromKey)) ?? $defaultFrom ?? $to->subDays(self::DEFAULT_DAYS);
 
         if ($from->greaterThan($to)) {
             [$from, $to] = [$to, $from];

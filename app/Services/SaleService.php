@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\LowStockAlertMail;
 use App\Models\Customer;
+use App\Models\Job;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\ProductUnit;
@@ -34,6 +35,7 @@ class SaleService
     public function __construct(
         private StockService $stock,
         private ShiftService $shifts,
+        private JobService $jobs,
     ) {}
 
     /**
@@ -46,6 +48,7 @@ class SaleService
      *
      * @param  array{
      *     customer_id?: ?int,
+     *     job_id?: ?int,
      *     items?: list<array{product_id: int, qty?: ?int, batch_id?: ?int, unit_ids?: list<int>, discount?: float|int|string|null}>,
      *     services?: list<array{service_id: int, price: float|int|string, fields?: array<string, mixed>}>,
      *     discount_amount?: float|int|string|null,
@@ -76,22 +79,27 @@ class SaleService
                 ->get()
                 ->keyBy('id');
 
-            $customer = blank($data['customer_id'] ?? null)
+            // A finished job being billed; its customer is the bill's customer when none is selected.
+            $job = blank($data['job_id'] ?? null) ? null : $this->lockBillableJob((int) $data['job_id']);
+            $customerId = blank($data['customer_id'] ?? null) ? $job?->customer_id : $data['customer_id'];
+
+            $customer = $customerId === null
                 ? null
-                : Customer::query()->whereKey($data['customer_id'])->lockForUpdate()->firstOrFail();
+                : Customer::query()->whereKey($customerId)->lockForUpdate()->firstOrFail();
 
             // 2. Serial units, then 3. showroom capacity for everything else.
             $productLines = $this->productLines($items, $products);
+            $jobLines = $job === null ? [] : $this->jobLines($job);
             $serviceLines = $this->serviceLines(array_values($data['services'] ?? []));
 
-            if ($productLines === [] && $serviceLines === []) {
+            if ($productLines === [] && $jobLines === [] && $serviceLines === []) {
                 throw ValidationException::withMessages(['items' => 'The cart is empty.']);
             }
 
             $this->ensureShowroomCapacity($productLines, $products);
 
             $quote = self::quote(
-                [...$productLines, ...$serviceLines],
+                [...$productLines, ...$jobLines, ...$serviceLines],
                 $data['discount_amount'] ?? 0,
                 (int) ($data['points_redeemed'] ?? 0),
                 $data['payments'],
@@ -110,12 +118,16 @@ class SaleService
             $sale = Sale::query()->create([
                 'invoice_no' => $invoiceNo,
                 'customer_id' => $customer?->id,
-                'customer_name' => $customer->name ?? self::WALK_IN_CUSTOMER,
-                'customer_phone' => $customer?->phone,
-                'customer_email' => $customer?->email,
+                'customer_name' => $customer->name ?? $job->customer_name ?? self::WALK_IN_CUSTOMER,
+                'customer_phone' => $customer?->phone ?? (filled($job?->customer_phone) ? $job->customer_phone : null),
+                'customer_email' => $customer?->email ?? (filled($job?->customer_email) ? $job->customer_email : null),
                 'cashier_id' => $cashier->id,
                 'cashier_name' => $cashier->name ?: $cashier->email,
-                'services' => $serviceLines === [] ? null : $this->serviceSnapshots($serviceLines, $quote),
+                'job_id' => $job?->id,
+                'job_no' => $job?->job_no,
+                'services' => $jobLines === [] && $serviceLines === []
+                    ? null
+                    : [...$this->jobSnapshots($job, $jobLines, $quote, count($productLines)), ...$this->serviceSnapshots($serviceLines, $quote)],
                 'subtotal' => $quote['subtotalCents'] / 100,
                 'discount_amount' => $quote['discountCents'] / 100,
                 'tax_amount' => 0,
@@ -178,7 +190,10 @@ class SaleService
                 $customer->save();
             }
 
-            // 11. Billing a finished job (Find Job to Bill) plugs in here: mark the job delivered with a history row.
+            // 11. A billed job is Delivered, with a history row naming the invoice.
+            if ($job !== null) {
+                $this->jobs->deliverBilledJob($job, $invoiceNo, $cashier);
+            }
 
             return $sale;
         });
@@ -544,6 +559,65 @@ class SaleService
         }
 
         return $lines;
+    }
+
+    /**
+     * Lock the job being billed; only a job marked Job Done can be billed (and only once).
+     *
+     * @throws ValidationException
+     */
+    private function lockBillableJob(int $jobId): Job
+    {
+        $job = Job::query()->whereKey($jobId)->lockForUpdate()->first();
+
+        if ($job === null) {
+            throw ValidationException::withMessages(['job_id' => 'The job to bill no longer exists.']);
+        }
+
+        if ($job->status !== 'done') {
+            throw ValidationException::withMessages([
+                'job_id' => "{$job->job_no} can't be billed — it is {$job->statusLabel()}. Only jobs marked Job Done can be billed.",
+            ]);
+        }
+
+        return $job;
+    }
+
+    /**
+     * The job's billable lines (services, repair charge / adjustment, less advance) as bill lines, worked out
+     * from the job as saved.
+     *
+     * @return list<array{name: string, price: float, chargeType: string, freeReason: string, discountCents: int, qty: int, surcharge: bool}>
+     */
+    private function jobLines(Job $job): array
+    {
+        return array_map(
+            fn (array $line): array => [...$line, 'discountCents' => 0, 'qty' => 1],
+            JobService::billableLines($job),
+        );
+    }
+
+    /**
+     * The job's lines as stored in the sale's `services` JSON and printed "Name (Service · JOB-xxxxx)", at the
+     * surcharged price.
+     *
+     * @param  list<array{name: string, price: float, chargeType: string, freeReason: string}>  $jobLines
+     * @param  array{unitPrices: list<float>}  $quote
+     * @return list<array<string, mixed>>
+     */
+    private function jobSnapshots(?Job $job, array $jobLines, array $quote, int $offset): array
+    {
+        return array_map(fn (array $line, int $index): array => [
+            'source' => 'job',
+            'jobId' => $job->id,
+            'jobNo' => $job->job_no,
+            'name' => $line['name'],
+            'price' => $quote['unitPrices'][$offset + $index],
+            'basePrice' => $line['price'],
+            'chargeType' => $line['chargeType'],
+            'freeReason' => $line['freeReason'],
+            'fields' => [],
+        ], $jobLines, array_keys($jobLines));
     }
 
     /**

@@ -27,6 +27,7 @@ class StoreSaleRequest extends FormRequest
     {
         return [
             'customer_id' => ['nullable', 'integer', Rule::exists('customers', 'id')],
+            'job_id' => ['nullable', 'integer'],
             'items' => ['nullable', 'array', 'max:200'],
             'items.*' => ['array'],
             'items.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')],
