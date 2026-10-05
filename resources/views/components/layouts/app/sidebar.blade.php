@@ -12,11 +12,11 @@
        aria-label="Sidebar">
 
     {{-- Logo --}}
-    <div class="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
+    <div class="relative flex items-center justify-center px-4 pt-4 pb-2">
         <a href="{{ route('dashboard') }}" class="block h-14 w-28 overflow-hidden">
             <img src="{{ asset('shop_logo/IMG_0112.PNG') }}" alt="{{ $shop->name }}" class="h-full w-28 scale-[1.4] object-contain">
         </a>
-        <button type="button" class="rounded p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-brand lg:hidden"
+        <button type="button" class="absolute right-4 rounded p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-brand lg:hidden"
                 x-on:click="sidebarOpen = false" aria-label="Close menu">
             <x-lucide-x class="h-5 w-5" />
         </button>

@@ -178,7 +178,7 @@ export default function posCart({ products, services, mainCategories, shift, url
             }
         },
 
-        product(id) {
+        findProduct(id) {
             return this.products.find((product) => product.id === id) ?? null;
         },
 
@@ -187,7 +187,7 @@ export default function posCart({ products, services, mainCategories, shift, url
         },
 
         available(productId) {
-            return (this.product(productId)?.showroom ?? 0) - this.inCart(productId);
+            return (this.findProduct(productId)?.showroom ?? 0) - this.inCart(productId);
         },
 
         serviceCount(serviceId) {
@@ -368,13 +368,13 @@ export default function posCart({ products, services, mainCategories, shift, url
 
         increase(line) {
             if (line.track_serial) {
-                this.openSerialPicker(this.product(line.product_id));
+                this.openSerialPicker(this.findProduct(line.product_id));
 
                 return;
             }
 
             if (this.available(line.product_id) < 1) {
-                this.flash(`Only ${this.product(line.product_id)?.showroom ?? 0} of "${line.name}" in Showroom.`);
+                this.flash(`Only ${this.findProduct(line.product_id)?.showroom ?? 0} of "${line.name}" in Showroom.`);
 
                 return;
             }
@@ -860,6 +860,21 @@ export default function posCart({ products, services, mainCategories, shift, url
             this.closeShiftModal = true;
         },
 
+        /**
+         * Counted minus expected drawer cash as the cashier types, or null until a count is entered.
+         */
+        get closeShiftVarianceCents() {
+            if (! this.shift || this.closeShiftForm.counted_cash === '' || this.closeShiftForm.counted_cash === null) {
+                return null;
+            }
+
+            return cents(this.closeShiftForm.counted_cash) - cents(this.shift.expected_cash);
+        },
+
+        fillCountedWithExpected() {
+            this.closeShiftForm.counted_cash = cents(this.shift.expected_cash) / 100;
+        },
+
         async closeShift() {
             this.shiftSaving = true;
 
@@ -931,7 +946,7 @@ export default function posCart({ products, services, mainCategories, shift, url
             }
 
             data.products.forEach(({ id, showroom }) => {
-                const product = this.product(id);
+                const product = this.findProduct(id);
 
                 if (product) {
                     product.showroom = showroom;

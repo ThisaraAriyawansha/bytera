@@ -361,17 +361,19 @@
                             <span class="flex items-center gap-2"><x-lucide-user-check class="h-4 w-4" /> Existing customer: <span class="font-medium" x-text="form.customer_name"></span></span>
                             <button type="button" class="text-xs font-medium hover:underline" x-on:click="clearCustomer()">Change</button>
                         </div>
-                        <div x-show="! form.customer_id" class="relative">
-                            <x-lucide-search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                            <input type="search" class="nexora-input pl-9" placeholder="Search existing customer by name or phone…" autocomplete="off" x-model="customerQuery" aria-label="Search customers">
-                            <div x-show="customerResults.length > 0 || customerSearching" x-cloak class="absolute z-30 mt-1 w-full overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg">
-                                <p x-show="customerSearching" class="px-3 py-2 text-xs text-zinc-500">Searching…</p>
-                                <template x-for="result in customerResults" :key="result.id">
-                                    <button type="button" class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-brand-light" x-on:click="pickCustomer(result)">
-                                        <span class="font-medium text-ink" x-text="result.name"></span>
-                                        <span class="text-xs text-zinc-500" x-text="result.phone"></span>
-                                    </button>
-                                </template>
+                        <div x-show="! form.customer_id">
+                            <div class="relative">
+                                <x-lucide-search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                <input type="search" class="nexora-input pl-9" placeholder="Search existing customer by name or phone…" autocomplete="off" x-model="customerQuery" aria-label="Search customers">
+                                <div x-show="customerResults.length > 0 || customerSearching" x-cloak class="absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg">
+                                    <p x-show="customerSearching" class="px-3 py-2 text-xs text-zinc-500">Searching…</p>
+                                    <template x-for="result in customerResults" :key="result.id">
+                                        <button type="button" class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-brand-light" x-on:click="pickCustomer(result)">
+                                            <span class="font-medium text-ink" x-text="result.name"></span>
+                                            <span class="text-xs text-zinc-500" x-text="result.phone"></span>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
                             <p class="mt-1 text-xs text-zinc-400">Or type a new customer below — they're added to Customers when the job is saved.</p>
                         </div>

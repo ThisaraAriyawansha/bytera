@@ -75,7 +75,8 @@
                                x-on:input="draftProduct?.track_serial && syncDraftSerials()" x-on:keydown.enter.prevent="addItem()">
                         <p x-show="draftErrors.qty" x-text="draftErrors.qty" x-cloak class="{{ $errorClasses }}"></p>
                     </div>
-                    <div class="flex items-end md:col-span-1">
+                    <div class="md:col-span-1">
+                        <span class="mb-1 hidden text-xs md:invisible md:block" aria-hidden="true">&nbsp;</span>
                         <button type="button" class="nexora-btn nexora-btn-outline w-full justify-center" x-on:click="addItem()">
                             <x-lucide-plus class="h-4 w-4" /> Add
                         </button>

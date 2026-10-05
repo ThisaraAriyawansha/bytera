@@ -32,7 +32,8 @@
             <span class="{{ $labelClasses }}">Serials picked</span>
             <p class="py-2 text-sm text-ink"><span x-text="draft.unit_ids.length"></span> selected</p>
         </div>
-        <div class="flex items-end md:col-span-2">
+        <div class="md:col-span-2">
+            <span class="mb-1 hidden text-xs md:invisible md:block" aria-hidden="true">&nbsp;</span>
             <button type="button" class="nexora-btn nexora-btn-outline w-full justify-center" x-on:click="addItem()">
                 <x-lucide-plus class="h-4 w-4" /> Add
             </button>

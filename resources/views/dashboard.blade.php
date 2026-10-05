@@ -110,7 +110,9 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
             @if ($canViewFinance)
                 {{-- 2. Revenue hero --}}
-                <section class="nexora-card min-w-0 p-5 lg:col-span-8" x-data="revenueTrend(@js(['points' => $revenue['trend']]))">
+                <section class="nexora-card flex min-w-0 flex-col p-5 lg:col-span-8"
+                         style="background-image: radial-gradient(circle at 85% 15%, rgba(227, 6, 19, 0.09), rgba(227, 6, 19, 0.03) 35%, transparent 65%);"
+                         x-data="revenueTrend(@js(['points' => $revenue['trend']]))">
                     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                         <div class="min-w-0">
                             <p class="{{ $eyebrow }}">Revenue · {{ $periodConfig['title'] }}</p>
@@ -137,10 +139,10 @@
                     </div>
 
                     {{-- Trend chart --}}
-                    <div class="relative mt-6 h-48 touch-pan-y select-none" x-ref="plot"
+                    <div class="relative mt-6 flex-1 touch-pan-y select-none" style="min-height: 9rem;" x-ref="plot"
                          x-on:pointermove="hover($event)" x-on:pointerdown="hover($event)" x-on:pointerleave="leave()">
                         <template x-for="line in gridLines" :key="line.label">
-                            <div class="pointer-events-none absolute inset-x-0 border-t border-dashed border-zinc-200" x-bind:style="`top: ${line.top}%`">
+                            <div class="pointer-events-none absolute inset-x-0 border-t border-zinc-100" x-bind:style="`top: ${line.top}%`">
                                 <span class="absolute -top-4 left-0 text-[10px] text-zinc-400" x-text="line.label"></span>
                             </div>
                         </template>
@@ -149,7 +151,8 @@
                         <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
                             <defs>
                                 <linearGradient id="revenue-trend-fill" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#e30613" stop-opacity="0.22" />
+                                    <stop offset="0%" stop-color="#e30613" stop-opacity="0.28" />
+                                    <stop offset="60%" stop-color="#e30613" stop-opacity="0.08" />
                                     <stop offset="100%" stop-color="#e30613" stop-opacity="0" />
                                 </linearGradient>
                             </defs>

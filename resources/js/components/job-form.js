@@ -3,6 +3,9 @@ import { formatMoney } from '../money';
 
 const cents = (value) => Math.round((Number(value) || 0) * 100);
 
+/** Deep-copies plain JSON data — unlike `structuredClone`, this also works on Alpine's reactive proxies. */
+const clone = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
+
 let nextRowId = 1;
 
 const rowId = () => `n${Date.now().toString(36)}${nextRowId++}`;
@@ -89,7 +92,7 @@ export default function jobForm(config) {
             const form = blankForm('');
 
             DETAIL_FIELDS.forEach((field) => {
-                form[field] = structuredClone(job[field] ?? form[field]);
+                form[field] = clone(job[field] ?? form[field]);
             });
 
             form.assigned_technician_id = job.assigned_technician_id ?? '';
@@ -230,8 +233,8 @@ export default function jobForm(config) {
 
         payload() {
             const payload = {
-                ...structuredClone(this.form),
-                parts: this.form.parts.filter((part) => [part.name, part.spec, part.serialNo].some((value) => String(value ?? '').trim() !== '')),
+                ...clone(this.form),
+                parts: clone(this.form.parts).filter((part) => [part.name, part.spec, part.serialNo].some((value) => String(value ?? '').trim() !== '')),
             };
 
             if (this.isEditing) {
@@ -246,9 +249,16 @@ export default function jobForm(config) {
         async saveJob() {
             this.formSaving = true;
 
-            const { ok, errors, data } = await sendJson(this.isEditing ? 'PUT' : 'POST', this.editUrl ?? this.jobConfig.urls.store, this.payload());
+            let response;
 
-            this.formSaving = false;
+            try {
+                response = await sendJson(this.isEditing ? 'PUT' : 'POST', this.editUrl ?? this.jobConfig.urls.store, this.payload());
+            } finally {
+                this.formSaving = false;
+            }
+
+            const { ok, errors, data } = response;
+
             this.formErrors = errors;
 
             if (! ok) {

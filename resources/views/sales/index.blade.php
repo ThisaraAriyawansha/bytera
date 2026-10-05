@@ -9,78 +9,80 @@
     <div class="flex flex-col lg:h-full lg:flex-row" x-data="posCart(@js($pos))">
 
         {{-- ═══ Left: catalogue ═══ --}}
-        <section class="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:overflow-hidden">
-            <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                <h1 class="font-prata text-2xl text-ink">New Sale</h1>
+        <section class="flex min-w-0 flex-1 flex-col p-3 sm:p-4 lg:overflow-hidden">
+            <div class="mb-3 flex flex-col justify-between gap-2 border-b border-zinc-200 sm:flex-row sm:items-end">
+                <div class="flex items-end gap-5">
+                    <h1 class="pb-2 font-prata text-lg leading-none text-ink">New Sale</h1>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <button type="button" class="nexora-btn nexora-btn-outline !py-1.5" x-on:click="openJobPicker()">
-                        <x-lucide-wrench class="h-4 w-4" /> Find Job to Bill
+                    {{-- Tabs --}}
+                    <div class="flex gap-4" role="tablist">
+                        @foreach (['products' => 'Products', 'services' => 'Services'] as $tab => $tabLabel)
+                            <button type="button" role="tab" class="-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors"
+                                    x-bind:aria-selected="tab === @js($tab)"
+                                    x-bind:class="tab === @js($tab) ? 'border-brand text-brand' : 'border-transparent text-zinc-500 hover:text-ink'"
+                                    x-on:click="tab = @js($tab)">
+                                {{ $tabLabel }}
+                                <span class="rounded-full px-1.5 text-[10px] tabular-nums"
+                                      x-bind:class="tab === @js($tab) ? 'bg-brand text-white' : 'bg-zinc-100 text-zinc-500'"
+                                      x-text="@js($tab) === 'products' ? listedProducts.length : services.length"></span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 pb-2">
+                    <button type="button" class="nexora-btn nexora-btn-outline !px-3 !py-1 !text-xs" x-on:click="openJobPicker()">
+                        <x-lucide-wrench class="h-3.5 w-3.5" /> Find Job to Bill
                     </button>
 
                     <button type="button" x-show="! shift" x-cloak x-on:click="startOpenShift()"
-                            class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100">
+                            class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100">
                         <x-lucide-lock class="h-3.5 w-3.5" /> No open shift — tap to open
                     </button>
 
-                    <div x-show="shift" x-cloak class="inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-zinc-200 bg-zinc-100 py-1 pl-3 pr-1 text-xs text-zinc-600">
+                    <div x-show="shift" x-cloak class="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-full border border-zinc-200 bg-zinc-100 py-0.5 pl-3 pr-0.5 text-xs text-zinc-600">
                         <span class="font-semibold text-ink" x-text="shift?.shift_no"></span>
                         <span class="tabular-nums">Cash <span x-text="money(shift?.cash_sales_total)"></span> · Card <span x-text="money(shift?.card_sales_total)"></span></span>
-                        <button type="button" class="rounded-full bg-white px-2.5 py-1 font-medium text-ink shadow-sm hover:text-brand" x-on:click="startCloseShift()">Close Shift</button>
+                        <button type="button" class="rounded-full bg-white px-2.5 py-0.5 font-medium text-ink shadow-sm hover:text-brand" x-on:click="startCloseShift()">Close Shift</button>
                     </div>
                 </div>
             </div>
 
-            {{-- Tabs --}}
-            <div class="mb-4 flex gap-6 border-b border-zinc-200" role="tablist">
-                @foreach (['products' => 'Products', 'services' => 'Services'] as $tab => $tabLabel)
-                    <button type="button" role="tab" class="-mb-px inline-flex items-center gap-2 border-b-2 pb-2.5 text-sm font-medium transition-colors"
-                            x-bind:aria-selected="tab === @js($tab)"
-                            x-bind:class="tab === @js($tab) ? 'border-brand text-brand' : 'border-transparent text-zinc-500 hover:text-ink'"
-                            x-on:click="tab = @js($tab)">
-                        {{ $tabLabel }}
-                        <span class="rounded-full px-1.5 text-[11px] tabular-nums"
-                              x-bind:class="tab === @js($tab) ? 'bg-brand text-white' : 'bg-zinc-100 text-zinc-500'"
-                              x-text="@js($tab) === 'products' ? listedProducts.length : services.length"></span>
-                    </button>
-                @endforeach
-            </div>
-
-            <p x-show="notice" x-text="notice" x-cloak x-transition.opacity class="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800" role="status"></p>
+            <p x-show="notice" x-text="notice" x-cloak x-transition.opacity class="mb-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-800" role="status"></p>
 
             {{-- Products tab --}}
             <div x-show="tab === 'products'" class="flex min-h-0 flex-1 flex-col">
-                <div class="mb-4 grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+                <div class="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
                     <div class="relative">
-                        <x-lucide-search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                        <input type="search" class="nexora-input pl-9" placeholder="Search product by name, SKU or barcode…" autocomplete="off" autofocus
+                        <x-lucide-search class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+                        <input type="search" class="nexora-input !py-1.5 pl-8 !text-sm" placeholder="Search product by name, SKU or barcode…" autocomplete="off" autofocus
                                x-model="search" x-on:keydown.enter.prevent="scanSearch()" aria-label="Search products">
                     </div>
-                    <select class="nexora-input sm:w-44" x-model="mainCategoryId" aria-label="Main category">
+                    <select class="nexora-input !py-1.5 !text-sm sm:w-40" x-model="mainCategoryId" aria-label="Main category">
                         <option value="">All categories</option>
                         <template x-for="main in mainCategories" :key="main.id">
                             <option :value="main.id" x-text="main.name"></option>
                         </template>
                     </select>
-                    <select class="nexora-input disabled:bg-zinc-50 disabled:text-zinc-400 sm:w-44" x-model="subCategoryId" x-bind:disabled="! mainCategoryId" aria-label="Sub category">
+                    <select class="nexora-input !py-1.5 !text-sm disabled:bg-zinc-50 disabled:text-zinc-400 sm:w-40" x-model="subCategoryId" x-bind:disabled="! mainCategoryId" aria-label="Sub category">
                         <option value="">All subcategories</option>
                         <template x-for="sub in subCategories" :key="sub.id">
                             <option :value="sub.id" x-text="sub.name"></option>
                         </template>
                     </select>
-                    <button type="button" class="nexora-btn nexora-btn-outline justify-center" x-on:click="clearFilters()">Clear</button>
+                    <button type="button" class="nexora-btn nexora-btn-outline justify-center !px-3 !py-1.5 !text-xs" x-on:click="clearFilters()">Clear</button>
                 </div>
 
                 <div class="min-h-0 flex-1 lg:overflow-y-auto">
-                    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                         <template x-for="product in filteredProducts" :key="product.id">
-                            <button type="button" class="nexora-card flex flex-col p-3 text-left transition hover:border-brand disabled:opacity-60"
+                            <button type="button" class="nexora-card flex flex-col px-2.5 py-2 text-left transition hover:border-brand disabled:opacity-60"
                                     x-on:click="pickProduct(product)" x-bind:disabled="batchLoading && batchProduct?.id === product.id">
-                                <span class="line-clamp-2 text-sm font-medium text-ink" x-text="product.name"></span>
-                                <span class="text-xs text-zinc-400" x-text="product.sku"></span>
-                                <span class="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1 pt-3">
-                                    <span class="whitespace-nowrap font-prata text-sm text-ink" x-text="money(product.price)"></span>
-                                    <span class="badge whitespace-nowrap" x-bind:class="product.showroom <= 5 ? 'badge-warning' : 'badge-default'" x-text="`${product.showroom} in stock`"></span>
+                                <span class="line-clamp-2 text-[13px] font-medium leading-snug text-ink" x-text="product.name"></span>
+                                <span class="text-[11px] text-zinc-400" x-text="product.sku"></span>
+                                <span class="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1.5">
+                                    <span class="whitespace-nowrap font-prata text-[13px] text-ink" x-text="money(product.price)"></span>
+                                    <span class="badge whitespace-nowrap !px-1.5 !py-0 !text-[10px]" x-bind:class="product.showroom <= 5 ? 'badge-warning' : 'badge-default'" x-text="`${product.showroom} in stock`"></span>
                                 </span>
                             </button>
                         </template>
@@ -95,21 +97,21 @@
 
             {{-- Services tab --}}
             <div x-show="tab === 'services'" x-cloak class="flex min-h-0 flex-1 flex-col">
-                <div class="relative mb-4 max-w-md">
-                    <x-lucide-search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                    <input type="search" class="nexora-input pl-9" placeholder="Search service by name…" autocomplete="off" x-model="serviceSearch" aria-label="Search services">
+                <div class="relative mb-3 max-w-md">
+                    <x-lucide-search class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+                    <input type="search" class="nexora-input !py-1.5 pl-8 !text-sm" placeholder="Search service by name…" autocomplete="off" x-model="serviceSearch" aria-label="Search services">
                 </div>
 
                 <div class="min-h-0 flex-1 lg:overflow-y-auto">
-                    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                         <template x-for="service in filteredServices" :key="service.id">
-                            <button type="button" class="nexora-card flex flex-col p-3 text-left transition hover:border-brand" x-on:click="openService(service)">
-                                <span class="text-sm font-medium text-ink" x-text="service.name"></span>
-                                <span class="line-clamp-2 text-xs text-zinc-400"
+                            <button type="button" class="nexora-card flex flex-col px-2.5 py-2 text-left transition hover:border-brand" x-on:click="openService(service)">
+                                <span class="text-[13px] font-medium leading-snug text-ink" x-text="service.name"></span>
+                                <span class="line-clamp-2 text-[11px] text-zinc-400"
                                       x-text="service.description || (service.custom_fields ?? []).map((field) => field.label).join(', ')"></span>
-                                <span class="mt-auto flex items-end justify-between gap-2 pt-3">
-                                    <span class="font-prata text-sm text-ink" x-text="money(service.default_price)"></span>
-                                    <span x-show="serviceCount(service.id) > 0" class="badge badge-info" x-text="`${serviceCount(service.id)} in bill`"></span>
+                                <span class="mt-auto flex items-center justify-between gap-2 pt-1.5">
+                                    <span class="font-prata text-[13px] text-ink" x-text="money(service.default_price)"></span>
+                                    <span x-show="serviceCount(service.id) > 0" class="badge badge-info !px-1.5 !py-0 !text-[10px]" x-text="`${serviceCount(service.id)} in bill`"></span>
                                 </span>
                             </button>
                         </template>
@@ -123,13 +125,13 @@
         </section>
 
         {{-- ═══ Right: cart ═══ --}}
-        <aside class="flex w-full flex-col border-t border-zinc-200 bg-white lg:h-full lg:w-96 lg:shrink-0 lg:border-l lg:border-t-0">
-            <div class="flex-1 space-y-4 p-4 lg:overflow-y-auto">
+        <aside class="flex w-full flex-col border-t border-zinc-200 bg-white lg:h-full lg:w-80 lg:shrink-0 lg:border-l lg:border-t-0 xl:w-[22rem]">
+            <div class="min-h-0 flex-1 space-y-3 p-3 lg:overflow-y-auto">
 
                 {{-- 1. Customer --}}
                 <div>
                     <div class="flex items-center gap-2">
-                        <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-zinc-200 px-3 py-2 text-left text-sm hover:border-brand" x-on:click="openCustomerPicker()">
+                        <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-zinc-200 px-2.5 py-1.5 text-left text-sm hover:border-brand" x-on:click="openCustomerPicker()">
                             <x-lucide-user class="h-4 w-4 shrink-0 text-zinc-400" />
                             <span class="truncate" x-show="! customer">Walk-in customer (tap to select)</span>
                             <span class="truncate font-medium text-ink" x-show="customer" x-cloak x-text="customer ? `${customer.name} · ${customer.phone}` : ''"></span>
@@ -141,7 +143,7 @@
                     <p class="mt-1 text-xs text-zinc-500" x-show="customer" x-cloak>
                         <span class="font-medium text-purple-700" x-text="`${customer?.loyalty_points ?? 0} pts available`"></span> · Earns 1 pt per Rs. 100 spent
                     </p>
-                    <p class="mt-1 text-xs text-zinc-500" x-show="! customer">Select a customer to earn 1% loyalty reward</p>
+                    <p class="mt-1 text-[11px] text-zinc-500" x-show="! customer">Select a customer to earn 1% loyalty reward</p>
                 </div>
 
                 {{-- 2. Attached job --}}
@@ -173,9 +175,9 @@
                 </template>
 
                 {{-- 3. Lines --}}
-                <div class="space-y-2">
+                <div class="space-y-1.5">
                     <template x-for="line in serviceLines" :key="'s' + line.key">
-                        <div class="rounded-md border border-zinc-200 p-3">
+                        <div class="rounded-md border border-zinc-200 px-2.5 py-2">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-ink" x-text="line.name"></p>
@@ -195,7 +197,7 @@
                     </template>
 
                     <template x-for="line in lines" :key="'p' + line.key">
-                        <div class="rounded-md border border-zinc-200 p-3">
+                        <div class="rounded-md border border-zinc-200 px-2.5 py-2">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-ink" x-text="line.name"></p>
@@ -205,48 +207,52 @@
                                     <x-lucide-x class="h-4 w-4" />
                                 </button>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
+                            <div class="mt-1.5 flex items-center gap-2">
                                 <div class="inline-flex items-center rounded-md border border-zinc-200">
-                                    <button type="button" class="px-2 py-1 text-zinc-500 hover:text-brand" x-on:click="decrease(line)" aria-label="Decrease quantity">
+                                    <button type="button" class="px-1.5 py-0.5 text-zinc-500 hover:text-brand" x-on:click="decrease(line)" aria-label="Decrease quantity">
                                         <x-lucide-minus class="h-3.5 w-3.5" />
                                     </button>
                                     <span class="w-8 text-center text-sm tabular-nums" x-text="line.qty"></span>
-                                    <button type="button" class="px-2 py-1 text-zinc-500 hover:text-brand" x-on:click="increase(line)" aria-label="Increase quantity">
+                                    <button type="button" class="px-1.5 py-0.5 text-zinc-500 hover:text-brand" x-on:click="increase(line)" aria-label="Increase quantity">
                                         <x-lucide-plus class="h-3.5 w-3.5" />
                                     </button>
                                 </div>
                                 <span class="text-xs text-zinc-400">× <span x-text="money(price(line.basePrice))"></span></span>
                                 <span class="ml-auto text-sm font-medium tabular-nums text-ink" x-text="money(lineTotalCents(line) / 100)"></span>
                             </div>
-                            <div class="mt-2 flex items-center gap-2">
+                            <div class="mt-1.5 flex items-center gap-2">
                                 <label class="text-xs text-zinc-500" :for="'discount-' + line.key">Discount</label>
-                                <input type="number" min="0" step="0.01" class="nexora-input !py-1 !text-xs" placeholder="0 per unit" :id="'discount-' + line.key" x-model="line.discount">
+                                <input type="number" min="0" step="0.01" class="nexora-input !py-0.5 !text-xs" placeholder="0 per unit" :id="'discount-' + line.key" x-model="line.discount">
                             </div>
                             <p x-show="lineDiscountError(line)" x-text="lineDiscountError(line)" x-cloak class="{{ $errorClasses }}"></p>
                         </div>
                     </template>
 
-                    <div x-show="cartIsEmpty" class="flex flex-col items-center py-8 text-center">
-                        <x-lucide-shopping-cart class="mb-2 h-8 w-8 text-zinc-300" />
+                    <div x-show="cartIsEmpty" class="flex flex-col items-center py-4 text-center">
+                        <x-lucide-shopping-cart class="mb-1 h-6 w-6 text-zinc-300" />
                         <p class="text-sm font-medium text-ink">Cart is empty</p>
                         <p class="text-xs text-zinc-400">Tap a product or service to add</p>
                     </div>
                 </div>
+            </div>
+
+            {{-- Pinned footer: totals, payment & checkout stay visible while the cart scrolls --}}
+            <div class="shrink-0 space-y-2.5 border-t border-zinc-200 bg-white p-3 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.08)]">
 
                 {{-- 4. Totals --}}
-                <div class="space-y-2 border-t border-zinc-200 pt-3 text-sm">
+                <div class="space-y-1.5 text-sm">
                     <div class="flex justify-between"><span class="text-zinc-500">Subtotal</span><span class="tabular-nums" x-text="money(subtotalCents / 100)"></span></div>
                     <div class="flex items-center justify-between gap-3">
                         <label for="pos-bill-discount" class="text-zinc-500">Bill Discount</label>
-                        <input id="pos-bill-discount" type="number" min="0" step="0.01" class="nexora-input !w-32 !py-1 text-right" placeholder="0" x-model="billDiscount" x-bind:max="subtotalCents / 100">
+                        <input id="pos-bill-discount" type="number" min="0" step="0.01" class="nexora-input !w-32 !py-0.5 text-right" placeholder="0" x-model="billDiscount" x-bind:max="subtotalCents / 100">
                     </div>
                     <div class="flex items-center justify-between gap-3" x-show="customer && customer.loyalty_points > 0" x-cloak>
                         <label for="pos-redeem-points" class="text-zinc-500">Redeem Points <span class="text-xs text-zinc-400" x-text="`(max ${maxPoints})`"></span></label>
-                        <input id="pos-redeem-points" type="number" min="0" step="1" class="nexora-input !w-32 !py-1 text-right" placeholder="0" x-model="redeemPoints" x-bind:max="maxPoints">
+                        <input id="pos-redeem-points" type="number" min="0" step="1" class="nexora-input !w-32 !py-0.5 text-right" placeholder="0" x-model="redeemPoints" x-bind:max="maxPoints">
                     </div>
-                    <div class="flex items-baseline justify-between pt-1">
+                    <div class="flex items-baseline justify-between">
                         <span class="font-medium text-ink">Total</span>
-                        <span class="font-prata text-2xl tabular-nums text-ink" x-text="money(totalCents / 100)"></span>
+                        <span class="font-prata text-xl tabular-nums text-ink" x-text="money(totalCents / 100)"></span>
                     </div>
                     <p x-show="charge.method" x-cloak class="rounded-md bg-zinc-50 px-2 py-1.5 text-[11px] leading-snug text-zinc-500">
                         Item prices above include a <span x-text="charge.percent"></span>% <span x-text="methodLabels[charge.method]"></span> surcharge (<span x-text="money(chargeAmountCents / 100)"></span>) — staff view only, not shown on the customer's bill
@@ -255,10 +261,10 @@
                 </div>
 
                 {{-- 5–7. Payment --}}
-                <div class="space-y-3 border-t border-zinc-200 pt-3">
-                    <div class="grid grid-cols-4 gap-1.5">
+                <div class="space-y-2 border-t border-zinc-200 pt-2.5">
+                    <div class="grid grid-cols-4 gap-1">
                         @foreach (Sale::PAYMENT_METHODS as $method => $methodLabel)
-                            <button type="button" class="rounded-md border px-2 py-2 text-xs font-medium transition-colors"
+                            <button type="button" class="rounded-md border px-1 py-1.5 text-xs font-medium transition-colors"
                                     @if ($method === 'kokopay') x-show="! isSplit" @endif
                                     x-bind:class="hasMethod(@js($method)) ? 'border-ink bg-ink text-white' : 'border-zinc-200 text-zinc-600 hover:border-ink'"
                                     x-bind:aria-pressed="hasMethod(@js($method))"
@@ -273,26 +279,26 @@
                     <div x-show="! isSplit && hasMethod('cash')" class="space-y-1">
                         <div class="flex items-center justify-between gap-3">
                             <label for="pos-tendered" class="text-sm text-zinc-500">Amount tendered</label>
-                            <input id="pos-tendered" type="number" min="0" step="0.01" class="nexora-input !w-36 !py-1 text-right" x-bind:placeholder="totalCents / 100" x-model="tendered">
+                            <input id="pos-tendered" type="number" min="0" step="0.01" class="nexora-input !w-32 !py-0.5 text-right" x-bind:placeholder="totalCents / 100" x-model="tendered">
                         </div>
                         <p x-show="changeCents !== null && changeCents >= 0" x-cloak class="text-right text-sm font-medium text-green-700">Change: <span x-text="money(changeCents / 100)"></span></p>
                     </div>
 
                     {{-- Split legs --}}
-                    <div x-show="isSplit" x-cloak class="space-y-2">
+                    <div x-show="isSplit" x-cloak class="space-y-1.5">
                         <template x-for="method in methods" :key="method">
                             <div>
                                 <div class="flex items-center justify-between gap-3">
                                     <label class="text-sm text-zinc-500" :for="'leg-' + method" x-text="methodLabels[method]"></label>
-                                    <input type="number" min="0" step="0.01" class="nexora-input !w-36 !py-1 text-right" :id="'leg-' + method"
+                                    <input type="number" min="0" step="0.01" class="nexora-input !w-32 !py-0.5 text-right" :id="'leg-' + method"
                                            x-show="method !== 'card'" x-model="legs[method]">
-                                    <span x-show="method === 'card'" class="w-36 rounded border border-zinc-200 bg-zinc-50 px-3 py-1 text-right text-sm tabular-nums" x-text="money(legCents('card') / 100)"></span>
+                                    <span x-show="method === 'card'" class="w-32 rounded border border-zinc-200 bg-zinc-50 px-3 py-0.5 text-right text-sm tabular-nums" x-text="money(legCents('card') / 100)"></span>
                                 </div>
                                 <p x-show="method === 'card' && charge.method === 'card'" class="mt-0.5 text-right text-[11px] text-zinc-500"
                                    x-text="`(${money(charge.cardBase ?? 0)} + ${charge.percent}% — swipe this)`"></p>
                             </div>
                         </template>
-                        <p class="text-right text-sm font-medium">
+                        <p class="text-right text-xs font-medium">
                             <span x-show="splitDifferenceCents === 0" class="text-green-700">Balanced</span>
                             <span x-show="splitDifferenceCents > 0" class="text-red-600" x-text="`Remaining: ${money(splitDifferenceCents / 100)}`"></span>
                             <span x-show="splitDifferenceCents < 0" class="text-red-600" x-text="`Over by ${money(-splitDifferenceCents / 100)}`"></span>
@@ -304,20 +310,20 @@
                         Points after this sale: <span class="font-medium text-purple-700" x-text="`${pointsAfter} pts`"></span> <span x-text="`(+${pointsEarned})`"></span>
                     </p>
                 </div>
-            </div>
 
-            {{-- 9–10. Checkout --}}
-            <div class="space-y-2 border-t border-zinc-200 p-4">
-                <p x-show="! shift" x-cloak class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">Open a shift above before checking out.</p>
-                <template x-if="errorMessages.length > 0">
-                    <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700" role="alert">
-                        <template x-for="message in errorMessages" :key="message"><p x-text="message"></p></template>
-                    </div>
-                </template>
-                <button type="button" class="nexora-btn nexora-btn-primary w-full justify-center !py-3 !text-base disabled:cursor-not-allowed disabled:opacity-50"
-                        x-bind:disabled="checkoutBlocker !== '' || processing" x-bind:title="checkoutBlocker" x-on:click="checkout()">
-                    <span x-text="processing ? 'Processing…' : `Checkout — ${money(totalCents / 100)}`">Checkout</span>
-                </button>
+                {{-- 9–10. Checkout --}}
+                <div class="space-y-2">
+                    <p x-show="! shift" x-cloak class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">Open a shift above before checking out.</p>
+                    <template x-if="errorMessages.length > 0">
+                        <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700" role="alert">
+                            <template x-for="message in errorMessages" :key="message"><p x-text="message"></p></template>
+                        </div>
+                    </template>
+                    <button type="button" class="nexora-btn nexora-btn-primary w-full justify-center !py-2.5 !text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                            x-bind:disabled="checkoutBlocker !== '' || processing" x-bind:title="checkoutBlocker" x-on:click="checkout()">
+                        <span x-text="processing ? 'Processing…' : `Checkout — ${money(totalCents / 100)}`">Checkout</span>
+                    </button>
+                </div>
             </div>
         </aside>
 
@@ -347,13 +353,55 @@
         <x-modal name="pos-close-shift" max-width="sm" x-model="closeShiftModal">
             <x-slot:title>Close Shift — <span x-text="shift?.shift_no"></span></x-slot:title>
             <form class="space-y-4" x-on:submit.prevent="closeShift()">
+                {{-- Expected drawer cash breakdown --}}
+                <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
+                    <div class="flex justify-between py-1">
+                        <span class="text-zinc-500">Opening float</span>
+                        <span class="tabular-nums text-ink" x-text="money(shift?.opening_float)"></span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-zinc-500">+ Cash sales <span class="text-xs text-zinc-400" x-text="`(${shift?.sales_count ?? 0} ${shift?.sales_count === 1 ? 'sale' : 'sales'})`"></span></span>
+                        <span class="tabular-nums text-green-700" x-text="money(shift?.cash_sales_total)"></span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-zinc-500">− Cash paid out</span>
+                        <span class="tabular-nums text-red-600" x-text="money(shift?.cash_expenses_total)"></span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between border-t border-zinc-200 pt-2">
+                        <span class="inline-flex items-center gap-1.5 font-semibold text-ink"><x-lucide-wallet class="h-4 w-4" /> Expected in drawer</span>
+                        <span class="text-base font-semibold tabular-nums text-ink" x-text="money(shift?.expected_cash)"></span>
+                    </div>
+                    <p class="mt-2 text-xs text-zinc-400">
+                        Not in drawer: Card <span x-text="money(shift?.card_sales_total)"></span> · Transfer <span x-text="money(shift?.transfer_sales_total)"></span> · KokoPay <span x-text="money(shift?.kokopay_sales_total)"></span>
+                    </p>
+                </div>
+
                 <div>
-                    <label for="shift-counted" class="{{ $labelClasses }}">Counted cash *</label>
-                    <input id="shift-counted" type="number" min="0" step="0.01" class="nexora-input" placeholder="Cash in the drawer" autofocus x-model="closeShiftForm.counted_cash">
+                    <div class="mb-1 flex items-center justify-between">
+                        <label for="shift-counted" class="text-xs font-medium text-zinc-600">Counted cash *</label>
+                        <button type="button" class="text-xs font-medium text-brand hover:underline" x-on:click="fillCountedWithExpected(); $nextTick(() => $refs.countedCash.focus())">Matches expected</button>
+                    </div>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-zinc-400">Rs.</span>
+                        <input id="shift-counted" type="number" min="0" step="0.01" class="nexora-input !pl-10 text-lg tabular-nums" placeholder="Count the cash in the drawer" autofocus x-ref="countedCash" x-model="closeShiftForm.counted_cash">
+                    </div>
                     <p x-show="shiftErrors.counted_cash" x-text="shiftErrors.counted_cash" x-cloak class="{{ $errorClasses }}"></p>
+
+                    {{-- Live variance as the cashier types --}}
+                    <div x-show="closeShiftVarianceCents !== null" x-cloak
+                         class="mt-2 flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                         x-bind:class="closeShiftVarianceCents === 0 ? 'border-green-200 bg-green-50 text-green-800' : (closeShiftVarianceCents < 0 ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-800')">
+                        <span class="inline-flex items-center gap-1.5 font-medium">
+                            <x-lucide-circle-check x-show="closeShiftVarianceCents === 0" class="h-4 w-4" />
+                            <x-lucide-triangle-alert x-show="closeShiftVarianceCents !== 0" class="h-4 w-4" />
+                            <span x-text="closeShiftVarianceCents === 0 ? 'Drawer balances' : (closeShiftVarianceCents < 0 ? 'Drawer is short' : 'Drawer is over')"></span>
+                        </span>
+                        <span class="font-semibold tabular-nums"
+                              x-text="closeShiftVarianceCents === 0 ? money(0) : `${closeShiftVarianceCents > 0 ? '+' : '−'}${money(Math.abs(closeShiftVarianceCents) / 100)}`"></span>
+                    </div>
                 </div>
                 <div>
-                    <label for="shift-close-note" class="{{ $labelClasses }}">Note</label>
+                    <label for="shift-close-note" class="{{ $labelClasses }}">Note <span x-show="closeShiftVarianceCents" x-cloak class="font-normal text-zinc-400">— explain the difference</span></label>
                     <input id="shift-close-note" type="text" class="nexora-input" maxlength="500" placeholder="e.g. Rs. 200 short — coin drawer miscount" x-model="closeShiftForm.note">
                 </div>
                 <p x-show="shiftErrors.shift || shiftErrors.form" x-text="shiftErrors.shift || shiftErrors.form" x-cloak class="{{ $errorClasses }}"></p>

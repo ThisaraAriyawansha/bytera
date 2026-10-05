@@ -1,7 +1,8 @@
 /**
  * Live header clock: "Tue, Sep 29, 2026 · 10:42 AM", refreshed every second.
+ * Rendered in the app's timezone so it matches server-side times regardless of the device clock.
  */
-export default function clock() {
+export default function clock(timeZone = 'Asia/Colombo') {
     return {
         date: '',
         time: '',
@@ -19,8 +20,8 @@ export default function clock() {
         tick() {
             const now = new Date();
 
-            this.date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-            this.time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            this.date = now.toLocaleDateString('en-US', { timeZone, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            this.time = now.toLocaleTimeString('en-US', { timeZone, hour: 'numeric', minute: '2-digit' });
         },
     };
 }
