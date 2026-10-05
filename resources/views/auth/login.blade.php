@@ -172,9 +172,9 @@
         @endif
     </x-slot:head>
 
-    <div class="min-h-screen bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200 flex items-center justify-center p-4 sm:p-8">
+    <div class="min-h-dvh bg-white sm:bg-gradient-to-br sm:from-zinc-100 sm:via-zinc-50 sm:to-zinc-200 flex flex-col items-center sm:justify-center gap-6 pb-6 sm:p-8 overflow-x-hidden">
         <div
-            class="w-full max-w-[440px] md:max-w-[900px] bg-white rounded-3xl shadow-[0_30px_80px_-20px_rgba(10,10,10,0.25)] overflow-hidden grid md:grid-cols-2 animate-fadeIn"
+            class="relative w-full sm:max-w-[440px] md:max-w-[900px] md:min-h-[520px] bg-white sm:rounded-2xl sm:shadow-[0_30px_80px_-20px_rgba(10,10,10,0.25)] grid md:grid-cols-2 animate-fadeIn"
             x-data="loginPage(@js([
                 'siteKey' => $turnstileSiteKey,
                 'cooldownSeconds' => \App\Services\PasswordResetService::RESEND_COOLDOWN_SECONDS,
@@ -187,23 +187,33 @@
             ]))"
         >
             {{-- Brand panel --}}
-            <div class="relative overflow-hidden bg-[#e30613] text-white px-8 py-10 md:p-12 flex flex-col justify-center">
-                <div class="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-white/10"></div>
-                <div class="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-white/10"></div>
-                <div class="pointer-events-none absolute top-1/2 right-10 h-20 w-20 rounded-full bg-white/5"></div>
+            <div class="relative overflow-hidden rounded-b-3xl sm:rounded-b-none sm:rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl bg-brand text-white px-6 pt-8 pb-7 sm:px-8 sm:py-10 md:px-12 md:py-10 flex flex-col justify-center">
+                <div class="pointer-events-none absolute -top-[58px] -left-[58px] h-[192px] w-[192px] rounded-full border-[29px] border-white/10"></div>
+                <div class="pointer-events-none absolute -bottom-[80px] right-10 h-40 w-40 rounded-full bg-white/10"></div>
 
-                <div class="relative">
-                    <img src="{{ asset('shop_logo/logo-white.png') }}" alt="{{ $shop->name }}" class="h-14 md:h-20 w-auto mb-6 md:mb-10" onerror="this.remove()">
-                    <h2 class="font-prata text-2xl md:text-3xl leading-tight">Welcome to {{ $shop->name }}</h2>
-                    <div class="mt-4 h-1 w-14 rounded-full bg-white"></div>
-                    <p class="mt-4 text-sm md:text-base text-white/85 max-w-xs">Manage repairs, sales and billing for your shop from one simple dashboard.</p>
+                <div class="relative flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <img src="{{ asset('shop_logo/logo-white.png') }}" alt="{{ $shop->name }}" class="h-11 sm:h-14 md:h-[77px] w-auto mb-4 sm:mb-6 md:mb-8" onerror="this.remove()">
+                    <h2 class="font-poppins font-semibold text-xl sm:text-2xl md:text-[26px] leading-tight">Welcome to {{ $shop->name }}</h2>
+                    <div class="hidden sm:block mt-3.5 h-[3px] w-12 rounded-full bg-white"></div>
+                    <p class="mt-2 sm:mt-4 text-[13px] sm:text-sm leading-relaxed text-white/90 max-w-[300px]">Manage repairs, sales and billing for your shop from one simple dashboard.</p>
                 </div>
             </div>
 
+            {{-- Decorative half-filled circle on the panel seam --}}
+            <div class="pointer-events-none hidden md:flex absolute left-1/2 top-[82%] z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-10px_rgba(10,10,10,0.2)]">
+                <div class="h-[61px] w-[61px] rounded-full bg-[linear-gradient(to_right,#e30613_50%,#fff_50%)]"></div>
+            </div>
+
+            {{-- Decorative outlined diamond on the top-right corner --}}
+            <div class="pointer-events-none hidden md:block absolute -right-9 top-10 h-[77px] w-[77px] rotate-45 rounded-[22px] border-[11px] border-zinc-200/60"></div>
+
             {{-- Form --}}
-            <div class="px-6 py-8 sm:px-10 md:p-12">
-                <h1 class="font-prata text-2xl text-ink" x-text="heading">Sign in</h1>
-                <p class="mt-1 text-sm text-zinc-500" x-text="subtitle">Enter your credentials to continue</p>
+            <div class="relative px-5 pt-7 pb-6 sm:px-10 sm:py-8 md:px-14 md:py-12 flex flex-col justify-center">
+                <div class="text-center">
+                    <h1 class="font-poppins font-semibold text-2xl md:text-[22px] text-ink" x-text="heading">Sign in</h1>
+                    <div class="mx-auto mt-1.5 h-[3px] w-7 rounded-full bg-brand"></div>
+                    <p class="mt-2 sm:mt-3 text-sm md:text-[13px] text-zinc-600" x-text="subtitle">Enter your credentials to continue</p>
+                </div>
 
                 <div x-cloak x-show="success" class="mt-5 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 flex gap-2">
                     <x-lucide-circle-check class="w-4 h-4 mt-0.5 shrink-0" />
@@ -215,23 +225,23 @@
                     <span x-text="errors.form"></span>
                 </div>
 
-                <form class="mt-6 flex flex-col gap-4" @submit.prevent="submit" novalidate>
+                <form class="mt-5 sm:mt-6 flex flex-col gap-4" @submit.prevent="submit" novalidate>
                     {{-- Email (sign in + forgot) --}}
                     <div x-show="mode !== 'reset'">
-                        <label for="email" class="block text-sm font-medium text-zinc-700 mb-1">Email</label>
-                        <input id="email" type="email" x-model="email" autocomplete="username" placeholder="you@example.com" class="nexora-input" :class="errors.email && 'border-red-400'">
+                        <label for="email" class="block text-[13px] font-medium text-ink mb-1">Email</label>
+                        <input id="email" type="email" x-model="email" autocomplete="username" placeholder="you@example.com" class="login-input" :class="errors.email && 'border-red-400'">
                         <p x-cloak x-show="errors.email" x-text="errors.email" class="mt-1 text-xs text-red-600"></p>
                     </div>
 
                     {{-- Password (sign in) --}}
                     <div x-show="mode === 'signin'">
                         <div class="flex items-center justify-between mb-1">
-                            <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
-                            <button type="button" class="text-xs font-medium text-brand hover:text-brand-dark" @click="switchMode('forgot')">Forgot password?</button>
+                            <label for="password" class="block text-[13px] font-medium text-ink">Password</label>
+                            <button type="button" class="text-xs text-zinc-500 hover:text-brand" @click="switchMode('forgot')">Forgot password?</button>
                         </div>
                         <div class="relative">
-                            <input id="password" :type="showPassword ? 'text' : 'password'" x-model="password" autocomplete="current-password" placeholder="••••••••" class="nexora-input pr-10" :class="errors.password && 'border-red-400'">
-                            <button type="button" class="absolute inset-y-0 right-0 px-3 text-zinc-400 hover:text-brand" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Hide password' : 'Show password'">
+                            <input id="password" :type="showPassword ? 'text' : 'password'" x-model="password" autocomplete="current-password" placeholder="Enter your password" class="login-input pr-10" :class="errors.password && 'border-red-400'">
+                            <button type="button" class="absolute inset-y-0 right-0 px-2 text-zinc-400 hover:text-brand" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Hide password' : 'Show password'">
                                 <x-lucide-eye class="w-4 h-4" x-show="!showPassword" />
                                 <x-lucide-eye-off class="w-4 h-4" x-cloak x-show="showPassword" />
                             </button>
@@ -249,16 +259,16 @@
                             <p x-show="errors.email" x-text="errors.email" class="-mt-3 text-xs text-red-600"></p>
 
                             <div>
-                                <label for="code" class="block text-sm font-medium text-zinc-700 mb-1">6-digit code</label>
-                                <input id="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" x-model="code" @input="code = code.replace(/\D/g, '')" placeholder="000000" class="nexora-input tracking-[0.4em] font-medium" :class="errors.code && 'border-red-400'">
+                                <label for="code" class="block text-[13px] font-medium text-ink mb-1">6-digit code</label>
+                                <input id="code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" x-model="code" @input="code = code.replace(/\D/g, '')" placeholder="000000" class="login-input tracking-[0.4em] font-medium" :class="errors.code && 'border-red-400'">
                                 <p x-show="errors.code" x-text="errors.code" class="mt-1 text-xs text-red-600"></p>
                             </div>
 
                             <div>
-                                <label for="new-password" class="block text-sm font-medium text-zinc-700 mb-1">New password</label>
+                                <label for="new-password" class="block text-[13px] font-medium text-ink mb-1">New password</label>
                                 <div class="relative">
-                                    <input id="new-password" :type="showNewPassword ? 'text' : 'password'" x-model="newPassword" autocomplete="new-password" placeholder="At least 6 characters" class="nexora-input pr-10" :class="errors.password && 'border-red-400'">
-                                    <button type="button" class="absolute inset-y-0 right-0 px-3 text-zinc-400 hover:text-brand" @click="showNewPassword = !showNewPassword" :aria-label="showNewPassword ? 'Hide password' : 'Show password'">
+                                    <input id="new-password" :type="showNewPassword ? 'text' : 'password'" x-model="newPassword" autocomplete="new-password" placeholder="At least 6 characters" class="login-input pr-10" :class="errors.password && 'border-red-400'">
+                                    <button type="button" class="absolute inset-y-0 right-0 px-2 text-zinc-400 hover:text-brand" @click="showNewPassword = !showNewPassword" :aria-label="showNewPassword ? 'Hide password' : 'Show password'">
                                         <x-lucide-eye class="w-4 h-4" x-show="!showNewPassword" />
                                         <x-lucide-eye-off class="w-4 h-4" x-show="showNewPassword" />
                                     </button>
@@ -267,19 +277,19 @@
                             </div>
 
                             <div>
-                                <label for="new-password-confirmation" class="block text-sm font-medium text-zinc-700 mb-1">Confirm new password</label>
-                                <input id="new-password-confirmation" :type="showNewPassword ? 'text' : 'password'" x-model="newPasswordConfirmation" autocomplete="new-password" placeholder="Repeat the new password" class="nexora-input">
+                                <label for="new-password-confirmation" class="block text-[13px] font-medium text-ink mb-1">Confirm new password</label>
+                                <input id="new-password-confirmation" :type="showNewPassword ? 'text' : 'password'" x-model="newPasswordConfirmation" autocomplete="new-password" placeholder="Repeat the new password" class="login-input">
                             </div>
                         </div>
                     </template>
 
                     {{-- Cloudflare Turnstile (one widget shared by all three modes) --}}
                     <div>
-                        <div x-ref="turnstile" class="min-h-[65px]"></div>
-                        <p x-cloak x-show="errors.turnstile_token" x-text="errors.turnstile_token" class="mt-1 text-xs text-red-600"></p>
+                        <div x-ref="turnstile" class="min-h-[65px] flex justify-center"></div>
+                        <p x-cloak x-show="errors.turnstile_token" x-text="errors.turnstile_token" class="mt-1 text-center text-xs text-red-600"></p>
                     </div>
 
-                    <button type="submit" class="nexora-btn nexora-btn-primary w-full justify-center py-2.5 disabled:opacity-60 disabled:cursor-not-allowed" :disabled="loading">
+                    <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-[13px] font-semibold uppercase tracking-wide text-white shadow-[0_8px_18px_-6px_rgba(227,6,19,0.55)] transition-colors hover:bg-brand-dark disabled:opacity-60 disabled:cursor-not-allowed" :disabled="loading">
                         <x-lucide-loader-circle class="w-4 h-4 animate-spin" x-cloak x-show="loading" />
                         <span x-text="buttonLabel">Sign in</span>
                     </button>
@@ -295,5 +305,10 @@
                 </form>
             </div>
         </div>
+
+        <footer class="text-center text-xs leading-relaxed text-zinc-400">
+            <p>&copy; {{ now()->year }} {{ $shop->name }}</p>
+            <p>Design &amp; Developed by plexCode</p>
+        </footer>
     </div>
 </x-layouts.base>
