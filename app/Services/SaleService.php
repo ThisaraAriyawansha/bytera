@@ -580,6 +580,14 @@ class SaleService
             ]);
         }
 
+        $activeInvoiceNo = $job->sales()->whereNull('status')->value('invoice_no');
+
+        if ($activeInvoiceNo !== null) {
+            throw ValidationException::withMessages([
+                'job_id' => "{$job->job_no} has already been billed on {$activeInvoiceNo}. Reverse that bill to bill the job again.",
+            ]);
+        }
+
         return $job;
     }
 

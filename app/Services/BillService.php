@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Customer;
+use App\Models\Job;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\ProductUnit;
@@ -32,6 +33,7 @@ class BillService
         private StockService $stock,
         private ShiftService $shifts,
         private AuditLogger $audit,
+        private JobService $jobs,
     ) {}
 
     /**
@@ -133,6 +135,7 @@ class BillService
             }
 
             $this->reverseLoyalty($sale);
+            $this->reopenBilledJob($sale, $user);
 
             $sale->warranties()->delete();
 
@@ -232,6 +235,23 @@ class BillService
 
         $customer->loyalty_points += $sale->points_redeemed - $earned;
         $customer->save();
+    }
+
+    /**
+     * A bill that delivered a job puts the job back to Job Done so it can be billed again. A job whose status
+     * was changed by hand since the sale is left alone.
+     */
+    private function reopenBilledJob(Sale $sale, User $user): void
+    {
+        if ($sale->job_id === null) {
+            return;
+        }
+
+        $job = Job::query()->whereKey($sale->job_id)->lockForUpdate()->first();
+
+        if ($job?->status === 'delivered') {
+            $this->jobs->reopenReversedJob($job, $sale->invoice_no, $user);
+        }
     }
 
     /**

@@ -175,6 +175,17 @@ class JobService
     }
 
     /**
+     * Undo deliverBilledJob() when its bill is reversed: back to Job Done, not returned, so it can be billed again.
+     * Call it inside the reversal's transaction with the job locked.
+     */
+    public function reopenReversedJob(Job $job, string $invoiceNo, User $user): void
+    {
+        $job->update(['status' => 'done', 'date_returned' => null]);
+
+        $this->addHistory($job, 'done', "Bill reversed — Invoice {$invoiceNo}. Back to Job Done for billing.", null, $user);
+    }
+
+    /**
      * The lines a finished job adds to a POS bill (SPEC §8.4 jobBillableServices): its services, then
      * "Other repair charges" / "Repair charge" or "Repair cost adjustment" up to the final cost, then
      * "Less: advance paid". Paid lines above zero take the Card / KokoPay surcharge; free and negative lines don't.

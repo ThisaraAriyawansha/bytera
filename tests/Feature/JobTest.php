@@ -331,6 +331,43 @@ class JobTest extends TestCase
         $this->assertSame('ongoing', $job->fresh()->status);
     }
 
+    public function test_reversing_a_job_bill_puts_the_job_back_to_job_done_so_it_can_be_billed_again(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        app(ShiftService::class)->open($this->cashier, 0, null);
+        $job = Job::factory()->create(['status' => 'done', 'services' => [], 'repair_cost' => 1000, 'advance_paid' => 0]);
+        $billPayload = ['job_id' => $job->id, 'payments' => [['method' => 'cash']], 'expected_total' => 1000];
+
+        $this->actingAs($this->cashier)->postJson(route('sales.store'), $billPayload)->assertCreated();
+        $this->actingAs($admin)
+            ->postJson(route('bills.reverse', Sale::query()->sole()), ['reason' => 'Wrong job billed'])
+            ->assertOk();
+
+        $job->refresh();
+        $this->assertSame('done', $job->status);
+        $this->assertNull($job->date_returned);
+        $this->assertSame('Bill reversed — Invoice INV-00001. Back to Job Done for billing.', $job->statusHistory()->latest('id')->first()->note);
+
+        $this->actingAs($this->cashier)->postJson(route('sales.store'), $billPayload)->assertCreated();
+        $this->assertSame('delivered', $job->fresh()->status);
+    }
+
+    public function test_a_job_that_is_already_billed_cannot_be_billed_again_after_a_manual_status_change(): void
+    {
+        app(ShiftService::class)->open($this->cashier, 0, null);
+        $job = Job::factory()->create(['status' => 'done', 'services' => [], 'repair_cost' => 1000, 'advance_paid' => 0]);
+        $billPayload = ['job_id' => $job->id, 'payments' => [['method' => 'cash']], 'expected_total' => 1000];
+
+        $this->actingAs($this->cashier)->postJson(route('sales.store'), $billPayload)->assertCreated();
+        $this->actingAs($this->cashier)->postJson(route('jobs.status', $job), ['status' => 'done'])->assertOk();
+
+        $this->actingAs($this->cashier)
+            ->postJson(route('sales.store'), $billPayload)
+            ->assertJsonValidationErrors(['job_id' => "{$job->job_no} has already been billed on INV-00001. Reverse that bill to bill the job again."]);
+
+        $this->assertSame(1, Sale::query()->count());
+    }
+
     /**
      * @return list<array{0: string, 1: float|int}>
      */
