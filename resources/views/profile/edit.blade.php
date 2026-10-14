@@ -51,10 +51,11 @@
                     <x-lucide-mail class="h-4 w-4 text-brand" />
                     <h2 class="font-prata text-base text-ink">Change Email</h2>
                 </div>
-                <p class="mb-4 text-sm text-zinc-500">We'll email a verification link to the new address. Your email changes only after you click it.</p>
+                <p class="mb-4 text-sm text-zinc-500">Enter your current password to confirm the change.</p>
 
-                <form method="POST" action="{{ route('profile.email.request') }}" class="space-y-4">
+                <form method="POST" action="{{ route('profile.email.update') }}" class="space-y-4">
                     @csrf
+                    @method('PUT')
                     <div>
                         <label for="new-email" class="{{ $labelClasses }}">New email</label>
                         <input id="new-email" name="email" type="email" required class="nexora-input" placeholder="name@example.com" value="{{ $newEmail }}">
@@ -67,7 +68,7 @@
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" class="nexora-btn nexora-btn-primary">
-                            <x-lucide-mail class="h-4 w-4" /> Send verification link
+                            <x-lucide-save class="h-4 w-4" /> Update Email
                         </button>
                     </div>
                 </form>

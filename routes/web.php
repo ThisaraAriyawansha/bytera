@@ -231,8 +231,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::put('/', [ProfileController::class, 'update'])->name('update');
-        Route::post('/email', [ProfileController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('email.request');
-        Route::get('/email/confirm/{user}', [ProfileController::class, 'confirmEmailChange'])->middleware('signed')->name('email.confirm');
+        Route::put('/email', [ProfileController::class, 'updateEmail'])->middleware('throttle:6,1')->name('email.update');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     });
 });
