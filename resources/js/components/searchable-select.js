@@ -102,10 +102,13 @@ export default function searchableSelect({ options = [], value = null, searchUrl
                 return;
             }
 
+            // Resolve the ref now: by the next tick the clicked option may be re-rendered out of the DOM.
+            const hidden = this.$refs.hidden;
+
             this.selected = option.value === null ? null : option;
             this.value = option.value;
             this.close();
-            this.$nextTick(() => this.$refs.hidden.dispatchEvent(new Event('change', { bubbles: true })));
+            this.$nextTick(() => hidden?.dispatchEvent(new Event('change', { bubbles: true })));
         },
 
         /**
