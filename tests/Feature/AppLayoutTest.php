@@ -90,9 +90,12 @@ class AppLayoutTest extends TestCase
             ->assertDontSee('Finance');
     }
 
-    public function test_user_without_any_permission_still_sees_settings(): void
+    public function test_settings_link_is_only_shown_to_users_with_settings_view(): void
     {
-        $tree = Navigation::forUser(User::factory()->make(['role' => 'Unknown']), 'settings.index');
+        $this->assertSame([], Navigation::forUser(User::factory()->make(['role' => 'Unknown']), 'settings.index'));
+        $this->assertNotContains('System', array_column(Navigation::forUser(User::factory()->make(['role' => 'Technician', 'permissions' => ['auditLog.view' => false]]), null), 'label'));
+
+        $tree = Navigation::forUser(User::factory()->make(['role' => 'Unknown', 'permissions' => ['settings.view' => true]]), 'settings.index');
 
         $this->assertSame([[
             'label' => 'System',

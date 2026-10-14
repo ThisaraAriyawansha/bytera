@@ -38,7 +38,7 @@ class PermissionsTest extends TestCase
 
     public function test_catalog_contains_every_spec_key_with_label_and_module(): void
     {
-        $this->assertCount(47, Permissions::PERMISSION_CATALOG);
+        $this->assertCount(48, Permissions::PERMISSION_CATALOG);
 
         foreach (Permissions::PERMISSION_CATALOG as $key => $entry) {
             $this->assertNotEmpty($entry['label'], $key);
@@ -93,10 +93,11 @@ class PermissionsTest extends TestCase
         $this->assertEqualsCanonicalizing(self::DEFAULT_TRUE, $this->grantedKeys($role));
     }
 
-    public function test_salary_view_is_not_a_default_for_non_admins(): void
+    public function test_salary_and_settings_view_are_not_defaults_for_non_admins(): void
     {
         foreach (['Manager', 'Cashier', 'Technician', 'Staff'] as $role) {
             $this->assertFalse(Permissions::defaults($role)['salary.view'], $role);
+            $this->assertFalse(Permissions::defaults($role)['settings.view'], $role);
         }
     }
 

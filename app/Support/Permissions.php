@@ -70,6 +70,8 @@ class Permissions
 
         'auditLog.view' => ['label' => 'View Audit Log', 'module' => 'Audit Log'],
 
+        'settings.view' => ['label' => 'View Settings', 'module' => 'Settings'],
+
         'jobs.view' => ['label' => 'View Jobs', 'module' => 'Jobs'],
         'jobs.edit' => ['label' => 'Edit job details', 'module' => 'Jobs'],
 
@@ -131,6 +133,16 @@ class Permissions
     ];
 
     /**
+     * `.view` keys only Admin / Super Admin receive by default.
+     *
+     * @var list<string>
+     */
+    public const ADMIN_ONLY_VIEW_KEYS = [
+        'salary.view',
+        'settings.view',
+    ];
+
+    /**
      * Get every permission key.
      *
      * @return list<string>
@@ -141,8 +153,8 @@ class Permissions
     }
 
     /**
-     * Get the keys granted to every editable role: all `.view` keys except
-     * `salary.view`, plus `products.edit` and `suppliers.editContact`.
+     * Get the keys granted to every editable role: all `.view` keys except the
+     * admin-only ones, plus `products.edit` and `suppliers.editContact`.
      *
      * @return list<string>
      */
@@ -150,7 +162,7 @@ class Permissions
     {
         $viewKeys = array_filter(
             self::keys(),
-            fn (string $key): bool => str_ends_with($key, '.view') && $key !== 'salary.view',
+            fn (string $key): bool => str_ends_with($key, '.view') && ! in_array($key, self::ADMIN_ONLY_VIEW_KEYS, true),
         );
 
         return [...array_values($viewKeys), 'products.edit', 'suppliers.editContact'];

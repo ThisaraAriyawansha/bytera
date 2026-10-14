@@ -40,7 +40,7 @@ class Navigation
         ]],
         ['label' => 'System', 'icon' => 'settings', 'children' => [
             ['label' => 'Audit Log', 'icon' => 'shield-check', 'route' => 'audit-log.index', 'permission' => 'auditLog.view'],
-            ['label' => 'Settings', 'icon' => 'settings', 'route' => 'settings.index', 'permission' => null],
+            ['label' => 'Settings', 'icon' => 'settings', 'route' => 'settings.index', 'permission' => 'settings.view'],
         ]],
     ];
 

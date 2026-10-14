@@ -13,9 +13,18 @@ class SettingsTest extends TestCase
 
     protected bool $seed = true;
 
-    public function test_everyone_can_open_settings_but_only_admins_see_edit_controls(): void
+    public function test_non_admin_roles_cannot_open_settings_by_default(): void
     {
-        $this->actingAs(User::factory()->create(['role' => 'Cashier']))
+        foreach (['Manager', 'Cashier', 'Technician', 'Staff'] as $role) {
+            $this->actingAs(User::factory()->create(['role' => $role]))
+                ->get(route('settings.index'))
+                ->assertForbidden();
+        }
+    }
+
+    public function test_granted_users_can_open_settings_but_only_admins_see_edit_controls(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'Cashier', 'permissions' => ['settings.view' => true]]))
             ->get(route('settings.index'))
             ->assertOk()
             ->assertSee('Only an Admin can change these settings.')
@@ -40,7 +49,7 @@ class SettingsTest extends TestCase
     {
         $superAdmin = User::factory()->superAdmin()->create(['email' => 'boss@example.com']);
 
-        foreach ([User::factory()->admin()->create(), User::factory()->create()] as $viewer) {
+        foreach ([User::factory()->admin()->create(), User::factory()->create(['permissions' => ['settings.view' => true]])] as $viewer) {
             $this->actingAs($viewer)->get(route('settings.index'))->assertDontSee('boss@example.com');
         }
 

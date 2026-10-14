@@ -18,7 +18,7 @@ use Illuminate\View\View;
 class SettingsController extends Controller
 {
     /**
-     * Show the settings page. Everyone can open it; only Admin / Super Admin see the edit controls.
+     * Show the settings page. Needs `settings.view`; only Admin / Super Admin see the edit controls.
      */
     public function index(Request $request): View
     {

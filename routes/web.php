@@ -208,7 +208,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
 
     Route::get('/audit-log', [AuditLogController::class, 'index'])->middleware('can:auditLog.view')->name('audit-log.index');
-    Route::prefix('settings')->name('settings.')->group(function () {
+    Route::middleware('can:settings.view')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
         Route::put('/shop', [SettingsController::class, 'updateShop'])->name('shop.update');
         Route::post('/notify-emails', [SettingsController::class, 'storeNotifyEmail'])->name('notify-emails.store');
